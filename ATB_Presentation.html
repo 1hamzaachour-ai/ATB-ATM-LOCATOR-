@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>ATB Mobile App — Présentation</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary:    #8B1832;
+    --primary-dk: #5C0F21;
+    --primary-lt: #B22C4A;
+    --gold:       #C9A84C;
+    --gold-lt:    #E8C97A;
+    --white:      #FFFFFF;
+    --off-white:  #F8F5F2;
+    --gray-100:   #F5F5F7;
+    --gray-300:   #DDDDDD;
+    --gray-600:   #666666;
+    --text:       #1A1A1A;
+    --slide-w:    1280px;
+    --slide-h:    720px;
+  }
+
+  body {
+    background: #1a1a1a;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* ── DECK WRAPPER ── */
+  .deck { position: relative; width: var(--slide-w); }
+
+  .slide {
+    width: var(--slide-w);
+    height: var(--slide-h);
+    position: absolute;
+    top: 0; left: 0;
+    overflow: hidden;
+    display: none;
+    background: var(--white);
+  }
+  .slide.active { display: flex; }
+
+  /* ── NAVIGATION ── */
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .nav button {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    transition: background .2s;
+  }
+  .nav button:hover { background: var(--primary-lt); }
+  .nav button:disabled { background: #555; cursor: default; }
+  .slide-counter { color: #ccc; font-size: 14px; font-family: 'Inter', sans-serif; min-width: 80px; text-align: center; }
+
+  .dot-nav { display: flex; gap: 8px; }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #555;
+    cursor: pointer;
+    transition: background .2s, transform .2s;
+  }
+  .dot.active { background: var(--primary); transform: scale(1.3); }
+
+  /* ══════════════════════════════════════════
+     SHARED COMPONENTS
+  ══════════════════════════════════════════ */
+  .slide-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .tag {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .tag-gold { background: var(--gold); color: var(--primary-dk); }
+  .tag-white { background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.3); }
+  .tag-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
+
+  /* decorative circle */
+  .deco-circle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: .08;
+  }
+
+  /* phone mockup */
+  .phone {
+    width: 160px;
+    height: 310px;
+    border-radius: 28px;
+    border: 8px solid #1a1a1a;
+    background: var(--gray-100);
+    position: relative;
+    box-shadow: 0 30px 60px rgba(0,0,0,.35), inset 0 0 0 2px #333;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .phone::before {
+    content: '';
+    position: absolute;
+    top: 10px; left: 50%;
+    transform: translateX(-50%);
+    width: 50px; height: 5px;
+    background: #1a1a1a;
+    border-radius: 3px;
+    z-index: 10;
+  }
+  .phone-screen {
+    width: 100%; height: 100%;
+    background: linear-gradient(160deg, var(--primary) 0%, var(--primary-dk) 40%, #222 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 26px;
+    gap: 8px;
+  }
+  .phone-bar {
+    width: 80%;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,.25);
+  }
+  .phone-bar.tall { height: 60px; border-radius: 10px; background: rgba(255,255,255,.12); }
+  .phone-bar.icon-row {
+    height: 36px;
+    background: rgba(255,255,255,.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 10px;
+    border-radius: 8px;
+  }
+  .phone-bar.icon-row i { color: rgba(255,255,255,.6); font-size: 10px; }
+
+  /* stat box */
+  .stat-box {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 24px 28px;
+    border: 1.5px solid var(--gray-300);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .stat-num { font-size: 42px; font-weight: 800; color: var(--primary); line-height: 1; }
+  .stat-label { font-size: 13px; color: var(--gray-600); font-weight: 500; }
+
+  /* feature card */
+  .feat-card {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 22px 20px;
+    border: 1.5px solid var(--gray-300);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: box-shadow .2s;
+  }
+  .feat-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: #fef0f2;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .feat-icon i { color: var(--primary); font-size: 18px; }
+  .feat-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .feat-desc { font-size: 12px; color: var(--gray-600); line-height: 1.5; }
+
+  /* ══════════════════════════════════════════
+     SLIDE 1 — TITLE
+  ══════════════════════════════════════════ */
+  #s1 {
+    background: linear-gradient(135deg, var(--primary-dk) 0%, var(--primary) 60%, var(--primary-lt) 100%);
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 0 100px;
+    position: relative;
+  }
+  #s1 .deco-circle:nth-child(1) { width:500px;height:500px; top:-150px;right:-100px; background:var(--gold); }
+  #s1 .deco-circle:nth-child(2) { width:300px;height:300px; bottom:-80px;right:200px; background:#fff; }
+  #s1 .deco-circle:nth-child(3) { width:180px;height:180px; bottom:60px;right:520px; background:var(--gold); }
+
+  #s1 .atb-badge {
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 10px;
+    padding: 8px 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 28px;
+    backdrop-filter: blur(10px);
+  }
+  #s1 .atb-badge span.logo {
+    width: 28px; height: 28px;
+    background: #fff;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 900; color: var(--primary);
+  }
+  #s1 .atb-badge span.name { color: rgba(255,255,255,.85); font-size: 13px; font-weight: 500; }
+
+  #s1 h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 72px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.05;
+    margin-bottom: 20px;
+    max-width: 700px;
+  }
+  #s1 h1 em { color: var(--gold-lt); font-style: normal; }
+
+  #s1 p.sub {
+    color: rgba(255,255,255,.75);
+    font-size: 18px;
+    max-width: 560px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+  }
+
+  #s1 .pill-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  #s1 .pill {
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    border-radius: 30px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex; align-items: center; gap: 8px;
+  }
+  #s1 .pill i { color: var(--gold-lt); }
+
+  #s1 .right-art {
+    position: absolute;
+    right: 80px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+  }
+  #s1 .right-art .phone:nth-child(2) { transform: translateY(-30px); }
+
+  /* ══════════════════════════════════════════
+     SLIDE 2 — EXECUTIVE SUMMARY
+  ══════════════════════════════════════════ */
+  #s2 { flex-direction: column; }
+
+  #s2 .header-bar {
+    width: 100%;
+    background: linear-gradient(90deg, var(--primary-dk), var(--primary));
+    padding: 28px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #s2 .header-bar h2 { color: #fff; font-size: 28px; font-weight: 700; }
+  #s2 .header-bar .atb-logo {
+    background: rgba(255,255,255,.15);
+    padding: 6px 14px;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    border: 1px solid rgba(255,255,255,.2);
+  }
+
+  #s2 .body { display: flex; flex: 1; }
+
+  #s2 .col-left {
+    flex: 1;
+    padding: 40px 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border-right: 1.5px solid var(--gray-300);
+  }
+  #s2 .col-right {
+    width: 380px;
+    padding: 40px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--off-white);
+  }
+
+  #s2 .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+
+  #s2 .point {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  #s2 .point .num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  #s2 .point p { font-size: 14px; color: var(--text); line-height: 1.6; }
+  #s2 .point p strong { color: var(--primary); }
+
+  #s2 .kpi {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 16px 20px;
+    border: 1.5px solid var(--gray-300);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  #s2 .kpi .icon-wrap {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: #fef0f2;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  #s2 .kpi .icon-wrap i { color: var(--primary); font-size: 16px; }
+  #s2 .kpi-text .val { font-size: 22px; font-weight: 800; color: var(--primary); }
+  #s2 .kpi-text .lbl { font-size: 11px; color: var(--gray-600); font-weight: 500; }
+
+  #s2 .quote-box {
+    background: var(--primary);
+    border-radius: 12px;
+    padding: 18px 20px;
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.6;
+    font-style: italic;
+    border-left: 4px solid var(--gold);
+    margin-top: auto;
+  }
+
+  /* ══════════════════════════════════════════
+     SLIDE 3 — FEATURE GRID
+  ══════════════════════════════════════════ */
+  #s3 { flex-direction: column; background: var(--off-white); }
+
+  #s3 .top { padding: 40px 60px 24px; }
+  #s3 .top .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--primary); margin-bottom: 8px; }
+  #s3 .top h2 { font-size: 36px; font-weight: 800; color: var(--text); }
+  #s3 .top h2 span { color: var(--primary); }
+
+  #s3 .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 0 60px 40px;
+    flex: 1;
+  }
+
+  #s3 .feat-card.highlight {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lt));
+    border: none;
+    color: #fff;
+  }
+  #s3 .feat-card.highlight .feat-icon { background: rgba(255,255,255,.15); }
+  #s3 .feat-card.highlight .feat-icon i { color: #fff; }
+  #s3 .feat-card.highlight .feat-title { color: #fff; }
+  #s3 .feat-card.highlight .feat-desc { color: rgba(255,255,255,.8); }
+
+  #s3 .feat-card.gold-card {
+    background: linear-gradient(135deg, var(--primary-dk), #2a0a14);
+    border: none;
+  }
+  #s3 .feat-card.gold-card .feat-icon { background: rgba(201,168,76,.2); }
+  #s3 .feat-card.gold-card .feat-icon i { color: var(--gold); }
+  #s3 .feat-card.gold-card .feat-title { color: var(--gold-lt); }
+  #s3 .feat-card.gold-card .feat-desc { color: rgba(255,255,255,.7); }
+
+  /* ══════════════════════════════════════════
+     SLIDE 4 — DAB LOCATOR
+  ══════════════════════════════════════════ */
+  #s4 {
+    background: var(--white);
+    flex-direction: row;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #s4 .left-panel {
+    width: 480px;
+    background: linear-gradient(160deg, var(--primary-dk) 0%, var(--primary) 100%);
+    padding: 60px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  #s4 .left-panel .deco-circle:nth-child(1) { width:300px;height:300px;bottom:-80px;left:-80px;background:#fff; }
+  #s4 .left-panel .deco-circle:nth-child(2) { width:150px;height:150px;top:-40px;right:-40px;background:var(--gold); }
+
+  #s4 .left-panel .eyebrow { color: var(--gold-lt); font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px; }
+  #s4 .left-panel h2 { color: #fff; font-size: 38px; font-weight: 800; line-height: 1.2; margin-bottom: 20px; }
+  #s4 .left-panel p { color: rgba(255,255,255,.78); font-size: 14px; line-height: 1.7; margin-bottom: 28px; }
+
+  #s4 .feature-list { display: flex; flex-direction: column; gap: 12px; }
+  #s4 .feature-list li {
+    list-style: none;
+    display: flex; align-items: center; gap: 12px;
+    color: rgba(255,255,255,.9);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  #s4 .feature-list li i { color: var(--gold-lt); font-size: 14px; width: 18px; }
+
+  #s4 .right-panel {
+    flex: 1;
+    padding: 40px 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  #s4 .map-mockup {
+    flex: 1;
+    border-radius: 16px;
+    background: #e8f4e8;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid var(--gray-300);
+    min-height: 0;
+  }
+  #s4 .map-mockup .map-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,120,0,.08) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,120,0,.08) 40px),
+      linear-gradient(135deg, #d4edda 0%, #c8e6c9 50%, #b8dfc9 100%);
+  }
+  #s4 .map-mockup .road-h {
+    position: absolute;
+    left: 0; right: 0;
+    height: 12px;
+    background: rgba(255,255,255,.7);
+    border-top: 1px solid rgba(0,0,0,.1);
+    border-bottom: 1px solid rgba(0,0,0,.1);
+  }
+  #s4 .map-mockup .road-v {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 12px;
+    background: rgba(255,255,255,.7);
+    border-left: 1px solid rgba(0,0,0,.1);
+    border-right: 1px solid rgba(0,0,0,.1);
+  }
+  #s4 .map-pin {
+    position: absolute;
+    display: flex; flex-direction: column; align-items: center;
+    transform: translate(-50%, -100%);
+    cursor: pointer;
+  }
+  #s4 .map-pin .pin-dot {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 3px solid #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(139,24,50,.4);
+  }
+  #s4 .map-pin .pin-dot i { color: #fff; font-size: 13px; }
+  #s4 .map-pin .pin-dot.open { background: #2e7d32; }
+  #s4 .map-pin .pin-label {
+    background: #fff;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-top: 3px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.15);
+    white-space: nowrap;
+  }
+  #s4 .map-pin.selected .pin-dot { border-color: #FFD700; box-shadow: 0 0 0 4px rgba(255,215,0,.3); }
+
+  #s4 .atm-card-sm {
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px 16px;
+    border: 1.5px solid var(--gray-300);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  }
+  #s4 .atm-card-sm .ic { width:36px;height:36px;border-radius:10px;background:#fef0f2;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+  #s4 .atm-card-sm .ic i { color:var(--primary);font-size:14px; }
+  #s4 .atm-card-sm .info { flex:1; }
+  #s4 .atm-card-sm .info .nm { font-size:13px;font-weight:700;color:var(--text); }
+  #s4 .atm-card-sm .info .addr { font-size:11px;color:var(--gray-600); }
+  #s4 .atm-card-sm .dist { font-size:12px;font-weight:700;color:var(--primary); }
+
+  /* ══════════════════════════════════════════
+     SLIDE 5 — AI CHATBOT
+  ══════════════════════════════════════════ */
+  #s5 {
+    background: var(--off-white);
+    flex-direction: row;
+  }
+
+  #s5 .left {
+    flex: 1;
+    padding: 55px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  #s5 .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--primary); }
+  #s5 h2 { font-size: 38px; font-weight: 800; color: var(--text); line-height: 1.15; }
+  #s5 h2 span { color: var(--primary); }
+  #s5 .sub { font-size: 14px; color: var(--gray-600); line-height: 1.7; max-width: 440px; }
+
+  #s5 .lang-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  #s5 .lang-pill {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+  #s5 .lang-pill.ar { background: #fef0f2; color: var(--primary); border: 1.5px solid var(--primary); }
+  #s5 .lang-pill.fr { background: #e8f4fd; color: #1565c0; border: 1.5px solid #1565c0; }
+  #s5 .lang-pill.en { background: #e8f5e9; color: #2e7d32; border: 1.5px solid #2e7d32; }
+
+  #s5 .capability-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  #s5 .cap-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text); }
+  #s5 .cap-item i { color: var(--primary); width: 18px; }
+
+  #s5 .right {
+    width: 440px;
+    background: var(--white);
+    border-left: 1.5px solid var(--gray-300);
+    display: flex;
+    flex-direction: column;
+  }
+
+  #s5 .chat-header {
+    background: linear-gradient(90deg, var(--primary-dk), var(--primary));
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  #s5 .chat-header .bot-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.2);
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid rgba(255,255,255,.3);
+  }
+  #s5 .chat-header .bot-avatar i { color: #fff; font-size: 16px; }
+  #s5 .chat-header .bot-info .nm { color: #fff; font-size: 14px; font-weight: 700; }
+  #s5 .chat-header .bot-info .st { color: rgba(255,255,255,.7); font-size: 11px; display: flex; align-items: center; gap: 4px; }
+  #s5 .chat-header .bot-info .st::before { content:''; width:7px;height:7px;background:#4caf50;border-radius:50%; }
+
+  #s5 .chat-body { flex: 1; padding: 20px 16px; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+
+  #s5 .msg { display: flex; gap: 8px; align-items: flex-end; }
+  #s5 .msg.bot { flex-direction: row; }
+  #s5 .msg.user { flex-direction: row-reverse; }
+
+  #s5 .msg .avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #fef0f2;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  #s5 .msg .avatar i { color: var(--primary); font-size: 12px; }
+  #s5 .msg .avatar.user-av { background: var(--primary); }
+  #s5 .msg .avatar.user-av span { color:#fff; font-size:11px; font-weight:700; }
+
+  #s5 .bubble {
+    max-width: 280px;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+  #s5 .bubble.bot-b {
+    background: var(--gray-100);
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+  }
+  #s5 .bubble.user-b {
+    background: var(--primary);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+
+  #s5 .chat-input {
+    border-top: 1.5px solid var(--gray-300);
+    padding: 12px 16px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  #s5 .chat-input .inp {
+    flex: 1;
+    background: var(--gray-100);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: var(--gray-600);
+  }
+  #s5 .chat-input .send-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #s5 .chat-input .send-btn i { color: #fff; font-size: 13px; }
+
+  /* ══════════════════════════════════════════
+     SLIDE 6 — CARDS MANAGEMENT
+  ══════════════════════════════════════════ */
+  #s6 { flex-direction: column; background: var(--white); }
+
+  #s6 .s6-header {
+    padding: 36px 60px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #s6 .s6-header .left .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--primary); margin-bottom: 6px; }
+  #s6 .s6-header .left h2 { font-size: 32px; font-weight: 800; color: var(--text); }
+  #s6 .s6-header .left h2 span { color: var(--primary); }
+
+  #s6 .body-row {
+    display: flex;
+    flex: 1;
+    padding: 0 60px 36px;
+    gap: 30px;
+    align-items: flex-start;
+  }
+
+  #s6 .card-stack { position: relative; width: 320px; height: 200px; flex-shrink: 0; }
+  #s6 .bank-card {
+    position: absolute;
+    width: 300px;
+    height: 178px;
+    border-radius: 18px;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 16px 40px rgba(0,0,0,.2);
+  }
+  #s6 .bank-card.card-back {
+    background: linear-gradient(135deg, #4a0e1c, #2a0810);
+    top: 20px; left: 20px;
+  }
+  #s6 .bank-card.card-front {
+    background: linear-gradient(135deg, var(--primary), var(--primary-lt));
+    top: 0; left: 0;
+  }
+  #s6 .bank-card .card-top { display: flex; justify-content: space-between; align-items: center; }
+  #s6 .bank-card .card-chip { width:30px;height:22px;border-radius:4px;background:var(--gold);opacity:.85; }
+  #s6 .bank-card .card-network { color:rgba(255,255,255,.9);font-size:18px;font-weight:900;letter-spacing:1px; }
+  #s6 .bank-card .card-num { color:rgba(255,255,255,.9);font-size:15px;letter-spacing:3px;font-weight:500; }
+  #s6 .bank-card .card-bottom { display:flex;justify-content:space-between; }
+  #s6 .bank-card .card-bottom .lbl { font-size:8px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:1px; }
+  #s6 .bank-card .card-bottom .val { font-size:12px;color:#fff;font-weight:600;margin-top:2px; }
+
+  #s6 .services-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    flex: 1;
+  }
+
+  #s6 .svc-item {
+    background: var(--off-white);
+    border-radius: 12px;
+    padding: 18px 16px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    border: 1.5px solid var(--gray-300);
+  }
+  #s6 .svc-item .ic { width:38px;height:38px;border-radius:10px;background:#fef0f2;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+  #s6 .svc-item .ic i { color:var(--primary);font-size:15px; }
+  #s6 .svc-item .tt { font-size:13px;font-weight:700;color:var(--text); margin-bottom:3px; }
+  #s6 .svc-item .dd { font-size:11px;color:var(--gray-600);line-height:1.5; }
+
+  /* ══════════════════════════════════════════
+     SLIDE 7 — TECH STACK
+  ══════════════════════════════════════════ */
+  #s7 {
+    background: linear-gradient(160deg, var(--primary-dk) 0%, #2a0810 100%);
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  #s7 .deco-circle:nth-child(1) { width:500px;height:500px;top:-200px;right:-150px;background:var(--gold); }
+  #s7 .deco-circle:nth-child(2) { width:250px;height:250px;bottom:-80px;left:100px;background:#fff; }
+
+  #s7 .s7-header { padding: 40px 60px 28px; position: relative; }
+  #s7 .s7-header .eyebrow { color:var(--gold-lt);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px; }
+  #s7 .s7-header h2 { color:#fff;font-size:36px;font-weight:800; }
+
+  #s7 .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 0 60px 40px;
+    position: relative;
+  }
+  #s7 .tech-card {
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 14px;
+    padding: 22px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    backdrop-filter: blur(10px);
+  }
+  #s7 .tech-card .t-icon { font-size: 28px; }
+  #s7 .tech-card .t-name { color:#fff;font-size:15px;font-weight:700; }
+  #s7 .tech-card .t-detail { color:rgba(255,255,255,.6);font-size:12px;line-height:1.5; }
+  #s7 .tech-card .t-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(201,168,76,.2);
+    color: var(--gold-lt);
+    width: fit-content;
+  }
+
+  #s7 .arch-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 60px 32px;
+    position: relative;
+  }
+  #s7 .arch-node {
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 10px;
+    padding: 10px 18px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+    white-space: nowrap;
+  }
+  #s7 .arch-node i { color: var(--gold-lt); }
+  #s7 .arch-arrow { color: rgba(255,255,255,.4); font-size: 18px; }
+
+  /* ══════════════════════════════════════════
+     SLIDE 8 — METRICS
+  ══════════════════════════════════════════ */
+  #s8 { flex-direction: column; background: var(--off-white); }
+
+  #s8 .s8-header { padding: 40px 60px 28px; }
+  #s8 .s8-header .eyebrow { font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--primary);margin-bottom:8px; }
+  #s8 .s8-header h2 { font-size:36px;font-weight:800;color:var(--text); }
+  #s8 .s8-header h2 span { color:var(--primary); }
+
+  #s8 .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 0 60px;
+  }
+  #s8 .metric-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 28px 24px;
+    border: 1.5px solid var(--gray-300);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  #s8 .metric-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-lt));
+  }
+  #s8 .metric-card .m-num { font-size: 48px; font-weight: 900; color: var(--primary); line-height: 1; }
+  #s8 .metric-card .m-unit { font-size: 16px; font-weight: 600; color: var(--primary-lt); }
+  #s8 .metric-card .m-label { font-size: 13px; color: var(--gray-600); font-weight: 500; margin-top: 4px; }
+  #s8 .metric-card .m-icon { position:absolute;bottom:16px;right:16px;font-size:28px;color:var(--primary);opacity:.08; }
+
+  #s8 .bottom-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 16px 60px 40px;
+  }
+  #s8 .progress-card {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 18px 20px;
+    border: 1.5px solid var(--gray-300);
+  }
+  #s8 .progress-card .pc-label { font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;display:flex;justify-content:space-between; }
+  #s8 .progress-card .pc-label span { color:var(--primary);font-weight:700; }
+  #s8 .progress-bar { height:8px;background:var(--gray-300);border-radius:4px;overflow:hidden; }
+  #s8 .progress-fill { height:100%;border-radius:4px;background:linear-gradient(90deg,var(--primary),var(--primary-lt)); }
+
+  /* ══════════════════════════════════════════
+     SLIDE 9 — ROADMAP
+  ══════════════════════════════════════════ */
+  #s9 { flex-direction: column; background: var(--white); }
+  #s9 .s9-header { padding: 40px 60px 24px; }
+  #s9 .s9-header .eyebrow { font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--primary);margin-bottom:8px; }
+  #s9 .s9-header h2 { font-size:36px;font-weight:800;color:var(--text); }
+
+  #s9 .timeline { padding: 20px 60px 40px; display:flex;flex-direction:column;gap:0; }
+  #s9 .phase {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    padding-bottom: 28px;
+    position: relative;
+  }
+  #s9 .phase::before {
+    content: '';
+    position: absolute;
+    left: 20px; top: 40px;
+    width: 2px;
+    bottom: 0;
+    background: var(--gray-300);
+  }
+  #s9 .phase:last-child::before { display:none; }
+
+  #s9 .phase-dot {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  #s9 .phase-dot.done { background: var(--primary); }
+  #s9 .phase-dot.active { background: var(--gold); }
+  #s9 .phase-dot.next { background: var(--gray-300); }
+  #s9 .phase-dot i { color:#fff; font-size:16px; }
+  #s9 .phase-dot.next i { color: var(--gray-600); }
+
+  #s9 .phase-content { flex:1; padding-top:8px; }
+  #s9 .phase-content .ph-date { font-size:11px;font-weight:700;color:var(--primary);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px; }
+  #s9 .phase-content .ph-title { font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px; }
+  #s9 .phase-content .ph-items { display:flex;flex-wrap:wrap;gap:6px; }
+  #s9 .phase-content .ph-item {
+    background: var(--off-white);
+    border: 1px solid var(--gray-300);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  #s9 .phase-content .ph-item.done-item { background:#fef0f2;border-color:var(--primary);color:var(--primary); }
+  #s9 .phase-content .ph-item.active-item { background:#fff9e6;border-color:var(--gold);color:#7a5c00; }
+
+  /* ══════════════════════════════════════════
+     SLIDE 10 — THANK YOU
+  ══════════════════════════════════════════ */
+  #s10 {
+    background: linear-gradient(135deg, var(--primary-dk) 0%, var(--primary) 55%, var(--primary-lt) 100%);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  #s10 .deco-circle:nth-child(1) { width:600px;height:600px;top:-250px;right:-200px;background:var(--gold); }
+  #s10 .deco-circle:nth-child(2) { width:350px;height:350px;bottom:-150px;left:-100px;background:#fff; }
+
+  #s10 .content { position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:20px; }
+
+  #s10 .logo-big {
+    width: 80px; height: 80px;
+    background: rgba(255,255,255,.15);
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid rgba(255,255,255,.25);
+    backdrop-filter: blur(10px);
+    margin-bottom: 8px;
+  }
+  #s10 .logo-big span { color:#fff;font-size:22px;font-weight:900;letter-spacing:1px; }
+
+  #s10 h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 58px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.1;
+  }
+  #s10 h2 em { color: var(--gold-lt); font-style:normal; }
+  #s10 p { color:rgba(255,255,255,.8);font-size:18px;max-width:600px;line-height:1.6; }
+
+  #s10 .cta-row { display:flex;gap:16px;margin-top:8px; }
+  #s10 .cta-btn {
+    padding: 14px 32px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer;
+  }
+  #s10 .cta-btn.primary-btn { background:var(--gold);color:var(--primary-dk); }
+  #s10 .cta-btn.outline-btn { background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.3); }
+
+  #s10 .contact-row {
+    display: flex;
+    gap: 32px;
+    margin-top: 12px;
+  }
+  #s10 .contact-item { display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.75);font-size:13px; }
+  #s10 .contact-item i { color:var(--gold-lt); }
+
+  /* slide number */
+  .slide-num {
+    position: absolute;
+    bottom: 16px;
+    right: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    opacity: .5;
+  }
+  .slide-num.light { color: rgba(255,255,255,.6); }
+  .slide-num.dark { color: var(--gray-600); }
+
+  /* ATB watermark */
+  .watermark {
+    position: absolute;
+    bottom: 14px;
+    left: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    opacity: .35;
+  }
+  .watermark.light { color: #fff; }
+  .watermark.dark { color: var(--primary); }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- ══ SLIDE 1 — TITLE ══ -->
+  <div class="slide active" id="s1">
+    <div class="deco-circle"></div>
+    <div class="deco-circle"></div>
+    <div class="deco-circle"></div>
+
+    <div class="atb-badge">
+      <span class="logo">ATB</span>
+      <span class="name">Arab Tunisian Bank</span>
+    </div>
+    <h1>Banque Mobile<br><em>Nouvelle Ère</em></h1>
+    <p class="sub">Une application bancaire complète pour les clients ATB — DABs en temps réel, assistant IA en Derja, et gestion de cartes intuitive.</p>
+    <div class="pill-row">
+      <span class="pill"><i class="fa-solid fa-location-dot"></i> Carte des DABs</span>
+      <span class="pill"><i class="fa-solid fa-robot"></i> Assistant IA</span>
+      <span class="pill"><i class="fa-solid fa-credit-card"></i> Gestion Cartes</span>
+      <span class="pill"><i class="fa-solid fa-bell"></i> Notifications</span>
+    </div>
+
+    <div class="right-art">
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="phone-bar" style="width:60%;height:10px;background:rgba(255,255,255,.5);border-radius:5px;"></div>
+          <div class="phone-bar" style="width:80%;height:6px;background:rgba(255,255,255,.25);"></div>
+          <div class="phone-bar tall"></div>
+          <div class="phone-bar" style="width:90%;"></div>
+          <div class="phone-bar" style="width:90%;"></div>
+          <div class="phone-bar" style="width:90%;"></div>
+          <div class="phone-bar icon-row" style="width:90%;">
+            <i class="fa-solid fa-home"></i>
+            <i class="fa-solid fa-credit-card"></i>
+            <i class="fa-solid fa-message"></i>
+            <i class="fa-solid fa-user"></i>
+            <i class="fa-solid fa-robot"></i>
+          </div>
+        </div>
+      </div>
+      <div class="phone" style="width:150px;height:290px;">
+        <div class="phone-screen" style="background:linear-gradient(160deg,#1a3a1a,#2d5a2d);">
+          <div class="phone-bar" style="width:85%;height:130px;border-radius:10px;background:rgba(255,255,255,.1);position:relative;">
+            <div style="position:absolute;width:20px;height:20px;background:#8B1832;border-radius:50%;border:2px solid #fff;top:40%;left:35%;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-location-dot" style="color:#fff;font-size:9px;"></i></div>
+            <div style="position:absolute;width:18px;height:18px;background:#2e7d32;border-radius:50%;border:2px solid #fff;top:25%;left:55%;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-location-dot" style="color:#fff;font-size:8px;"></i></div>
+          </div>
+          <div class="phone-bar" style="width:85%;height:50px;border-radius:10px;background:rgba(255,255,255,.15);"></div>
+          <div class="phone-bar" style="width:85%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <span class="watermark light">ATB MOBILE · 2026</span>
+    <span class="slide-num light">01 / 10</span>
+  </div>
+
+  <!-- ══ SLIDE 2 — EXECUTIVE SUMMARY ══ -->
+  <div class="slide" id="s2">
+    <div class="header-bar">
+      <h2><i class="fa-solid fa-chart-line" style="margin-right:12px;color:var(--gold-lt)"></i>Résumé Exécutif</h2>
+      <span class="atb-logo">ATB</span>
+    </div>
+    <div class="body">
+      <div class="col-left">
+        <div class="section-title">Vision du Projet</div>
+        <div class="point">
+          <div class="num">1</div>
+          <p>Application <strong>100% Flutter</strong> — une seule base de code pour Android et iOS, réduisant les coûts de développement de 40%.</p>
+        </div>
+        <div class="point">
+          <div class="num">2</div>
+          <p>Cartographie en temps réel des <strong>DABs ATB</strong> avec données OpenStreetMap — aucune dépendance à une API payante.</p>
+        </div>
+        <div class="point">
+          <div class="num">3</div>
+          <p>Assistant IA multilingue (<strong>Darija · Français · Anglais</strong>) propulsé par Groq LLaMA — réponses en moins de 500ms.</p>
+        </div>
+        <div class="point">
+          <div class="num">4</div>
+          <p>Gestion complète des cartes bancaires avec alertes de sécurité, limites et historique des <strong>transactions</strong>.</p>
+        </div>
+        <div class="point">
+          <div class="num">5</div>
+          <p>Architecture modulaire et maintenable — prête pour l'intégration avec les <strong>APIs backend ATB</strong>.</p>
+        </div>
+      </div>
+      <div class="col-right">
+        <div class="section-title" style="color:var(--primary)">Chiffres Clés</div>
+        <div class="kpi">
+          <div class="icon-wrap"><i class="fa-solid fa-mobile-screen-button"></i></div>
+          <div class="kpi-text"><div class="val">5</div><div class="lbl">Écrans principaux</div></div>
+        </div>
+        <div class="kpi">
+          <div class="icon-wrap"><i class="fa-solid fa-location-dot"></i></div>
+          <div class="kpi-text"><div class="val">20+</div><div class="lbl">DABs pré-chargés</div></div>
+        </div>
+        <div class="kpi">
+          <div class="icon-wrap"><i class="fa-solid fa-bolt"></i></div>
+          <div class="kpi-text"><div class="val">&lt;500ms</div><div class="lbl">Temps réponse IA</div></div>
+        </div>
+        <div class="kpi">
+          <div class="icon-wrap"><i class="fa-solid fa-globe"></i></div>
+          <div class="kpi-text"><div class="val">3</div><div class="lbl">Langues supportées</div></div>
+        </div>
+        <div class="quote-box">
+          "Une expérience bancaire moderne, pensée pour le client tunisien — rapide, intelligente et accessible."
+        </div>
+      </div>
+    </div>
+    <span class="watermark dark">ATB MOBILE · 2026</span>
+    <span class="slide-num dark">02 / 10</span>
+  </div>
+
+  <!-- ══ SLIDE 3 — FEATURE GRID ══ -->
+  <div class="slide" id="s3">
+    <div class="top">
+      <div class="eyebrow">Fonctionnalités</div>
+      <h2>Ce que fait <span>l'application</span></h2>
+    </div>
+    <div class="grid">
+      <div class="feat-card highlight">
+        <div class="feat-icon"><i class="fa-solid fa-location-dot"></i></div>
+        <div class="feat-title">Carte des DABs en direct</div>
+        <div class="feat-desc">Localisation GPS en temps réel. Markers colorés ouvert/fermé, filtres dépôt et retrait sans carte.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fa-solid fa-robot"></i></div>
+        <div class="feat-title">Assistant IA · Derja</div>
+        <div class="feat-desc">Chatbot propulsé par LLaMA 3.1 via Groq. Répond en tunisien, français ou anglais selon l'utilisateur.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fa-solid fa-credit-card"></i></div>
+        <div class="feat-title">Gestion des Cartes</div>
+        <div class="feat-desc">Carousel de cartes VISA/Mastercard, sécurité, limites de retrait et historique complet.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fa-solid fa-bell"></i></div>
+        <div class="feat-title">Messages & Alertes</div>
+        <div class="feat-desc">Centre de notifications bancaires groupées par date. Filtres Banque · Sécurité · Contacts.</div>
+      </div>
+      <div class="feat-card gold-card">
+        <div class="feat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="feat-title">Sécurité Avancée</div>
+        <div class="feat-desc">Blocage de carte instantané, alertes de connexion suspecte et authentification biométrique.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fa-solid fa-map"></i></div>
+        <div class="feat-title">Itinéraire Intégré</div>
+        <div class="feat-desc">Ouverture directe dans Google Maps depuis la fiche DAB. Distance calculée en temps réel.</div>
+      </div>
+    </div>
+    <span class="watermark dark">ATB MOBILE · 2026</span>
+    <span class="slide-num dark">03 / 10</span>
+  </div>
+
+  <!-- ══ SLIDE 4 — DAB LOCATOR ══ -->
+  <div class="slide" id="s4">
+    <div class="left-panel">
+      <div class="deco-circle"></div>
+      <div class="deco-circle"></div>
+      <div class="eyebrow">Fonctionnalité Phare</div>
+      <h2>Carte des<br>DABs ATB</h2>
+      <p>Trouvez instantanément le distributeur le plus proche, avec filtres en temps réel et navigation intégrée.</p>
+      <ul class="feature-list">
+        <li><i class="fa-solid fa-check"></i> Données OpenStreetMap (gratuit)</li>
+        <li><i class="fa-solid fa-check"></i> Filtres : Ouvert · Dépôt · Sans carte</li>
+        <li><i class="fa-solid fa-check"></i> Marker sélectionné avec carte infos</li>
+        <li><i class="fa-solid fa-check"></i> Itinéraire Google Maps en 1 clic</li>
+        <li><i class="fa-solid fa-check"></i> Position GPS de l'utilisateur</li>
+        <li><i class="fa-solid fa-check"></i> 20+ DABs pré-chargés (fallback)</li>
+      </ul>
+    </div>
+    <div class="right-panel">
+      <div class="map-mockup">
+        <div class="map-bg"></div>
+        <div class="road-h" style="top:38%"></div>
+        <div class="road-h" style="top:62%"></div>
+        <div class="road-v" style="left:30%"></div>
+        <div class="road-v" style="left:60%"></div>
+
+        <div class="map-pin selected" style="top:42%;left:32%">
+          <div class="pin-dot"><i class="fa-solid fa-building-columns"></i></div>
+          <div class="pin-label">ATB Marine</div>
+        </div>
+        <div class="map-pin" style="top:28%;left:58%">
+          <div class="pin-dot open"><i class="fa-solid fa-building-columns"></i></div>
+          <div class="pin-label">ATB Lac</div>
+        </div>
+        <div class="map-pin" style="top:65%;left:45%">
+          <div class="pin-dot"><i class="fa-solid fa-building-columns"></i></div>
+          <div class="pin-label">BIAT</div>
+        </div>
+        <div class="map-pin" style="top:50%;left:68%">
+          <div class="pin-dot open"><i class="fa-solid fa-building-columns"></i></div>
+          <div class="pin-label">STB</div>
+        </div>
+        <!-- user dot -->
+        <div style="position:absolute;top:44%;left:34%;transform:translate(-50%,-50%);">
+          <div style="width:14px;height:14px;background:#2196f3;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 6px rgba(33,150,243,.2);"></div>
+        </div>
+      </div>
+
+      <div class="atm-card-sm">
+        <div class="ic"><i class="fa-solid fa-location-dot"></i></div>
+        <div class="info">
+          <div class="nm">Agence Tunis Marine</div>
+          <div class="addr">Avenue Habib Bourguiba, Tunis · Dépôt ✓</div>
+        </div>
+        <div class="dist">320m</div>
+      </div>
+    </div>
+    <span class="watermark dark">ATB MOBILE · 2026</span>
+    <span class="slide-num dark">04 / 10</span>
+  </div>
+
+  <!-- ══ SLIDE 5 — AI CHATBOT ══ -->
+  <div class="slide" id="s5">
+    <div class="left">
+      <div class="eyebrow">Intelligence Artificielle</div>
+      <h2>Assistant <span>Tunisien</span><br>Propulsé par IA</h2>
+      <p class="sub">Le premier chatbot bancaire tunisien qui comprend la Derja, le français et l'anglais — et mélange les trois naturellement.</p>
+
+      <div class="lang-pills">
+        <span class="lang-pill ar"><i class="fa-solid fa-language"></i> Derja Tounsia</span>
+        <span class="lang-pill fr"><i class="fa-solid fa-flag"></i> Français</span>
+        <span class="lang-pill en"><i class="fa-solid fa-globe"></i> English</span>
+      </div>
+
+      <div class="capability-list">
+        <div class="cap-item"><i class="fa-solid fa-location-dot"></i> Localisation du DAB le plus proche</div>
+        <div class="cap-item"><i class="fa-solid fa-clock"></i> Vérification des horaires d'ouverture</div>
+        <div class="cap-item"><i class="fa-solid fa-credit-card"></i> Aide au blocage de carte</div>
+        <div class="cap-item"><i class="fa-solid fa-coins"></i> Info commissions & limites</div>
+        <div class="cap-item"><i class="fa-solid fa-bolt"></i> Réponses en moins de 500ms (Groq)</div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="chat-header">
+        <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
+        <div class="bot-info">
+          <div class="nm">Assistance IA · ATB</div>
+          <div class="st">En ligne pour vous aider</div>
+        </div>
+      </div>
+      <div class="chat-body">
+        <div class="msg bot">
+          <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+          <div class="bubble bot-b">Aslema! Ana assistant ATB. Kifesh naaounek lyoum? 😊</div>
+        </div>
+        <div class="msg user">
+          <div class="avatar user-av"><span>S</span></div>
+          <div class="bubble user-b">Feen el DAB el akreb m3a service dépôt?</div>
+        </div>
+        <div class="msg bot">
+          <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+          <div class="bubble bot-b">Barra! "Agence Tunis Marine" 320m men andek 3andha module dépôt. Maftouha 08h-18h. 📍 Tħeb l'itinéraire?</div>
+        </div>
+        <div class="msg user">
+          <div class="avatar user-av"><span>S</span></div>
+          <div class="bubble user-b">Ouiii, merci barra!</div>
+        </div>
+        <div class="msg bot">
+          <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+          <div class="bubble bot-b">Afw! Baraka Lahu fik 🙏 Navigation lancée vers l'agence.</div>
+        </div>
+      </div>
+      <div class="chat-input">
+        <div class="inp">Posez votre question...</div>
+        <div class="send-btn"><i class="fa-solid fa-paper-plane"></i></div>
+      </div>
+    </div>
+    <span class="watermark dark">ATB MOBILE · 2026</span>
+    <span class="slide-num dark">05 / 10</span>
+  </div>
+
+  <!-- ══ SLIDE 6 — CARDS ══ -->
+  <div class="slide" id="s6">
+    <div class="s6-header">
+      <div class="left">
+        <div class="eyebrow">Gestion Bancaire</div>
+        <h2>Mes <span>Cartes</span></h2>
+      </div>
+      <span class="tag tag-outline"><i class="fa-solid fa-shield-halved" style="margin-right:6px"></i>Sécurisé</span>
+    </div>
+    <div class="body-row">
+      <div class="card-stack">
+        <div class="bank-card card-back">
+          <div class="card-top">
+            <div class="card-chip"></div>
+            <span class="card-network">VISA</span>
+          </div>
+          <div class="card-num">**** **** **** 7891</div>
+          <div class="card-bottom">
+            <div><div class="lbl">Titulaire</div><div class="val">SAMI BEN ALI</div></div>
+            <div><div class="lbl">Expiration</div><div class="val">08/28</div></div>
+          </div>
+        </div>
+        <div class="bank-card card-front">
+          <div class="card-top">
+            <div class="card-chip"></div>
+            <span class="card-network">VISA</span>
+          </div>
+          <div class="card-num">**** **** **** 4242</div>
+          <div class="card-bottom">
+            <div><div class="lbl">Titulaire</div><div class="val">SAMI BEN ALI</div></div>
+            <div><div class="lbl">Expiration</div><div class="val">12/26</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="services-grid">
+        <div class="svc-item">
+          <div class="ic"><i class="fa-solid fa-mobile-screen-button"></i></div>
+          <div>
+            <div class="tt">Paiement Mobile</div>
+            <div class="dd">Paiements NFC et QR code depuis votre smartphone.</div>
+          </div>
+        </div>
+        <div class="svc-item">
+          <div class="ic"><i class="fa-solid fa-shield-halved"></i></div>
+          <div>
+            <div class="tt">Sécurité Cartes</div>
+            <div class="dd">Blocage instantané, alertes fraude et 2FA.</div>
+          </div>
+        </div>
+        <div class="svc-item">
+          <div class="ic"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <div>
+            <div class="tt">Historique</div>
+            <div class="dd">Toutes vos transactions classées et filtrables.</div>
+          </div>
+        </div>
+        <div class="svc-item">
+          <div class="ic"><i class="fa-solid fa-sliders"></i></div>
+          <div>
+            <div class="tt">Limites</div>
+            <div class="dd">Contrôle des plafonds de retrait et de paiement.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <span class="watermark dark">ATB MOBILE · 2026</span>
+    <span class="slide-num dark">06 / 10</span>
+  </div>
+
+  <!-- ══ SLIDE 7 — TECH STACK ══ -->
+  <div class="slide" id="s7">
+    <div class="deco-circle"></div>
+    <div class="deco-circle"></div>
+
+    <div class="s7-header">
+      <div class="eyebrow">Architecture Technique</div>
+      <h2>Stack Technologique</h2>
+    </div>
+
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="t-icon">🐦</div>
+        <div class="t-name">Flutter 3.44</div>
+        <div class="t-detail">Framework UI cross-platform. Un code, Android + iOS.</div>
+        <span class="t-badge">Frontend</span>
+      </div>
+      <div class="tech-card">
+        <div class="t-icon">🗺️</div>
+        <div class="t-name">Flutter Map</div>
+        <div class="t-detail">Tuiles OpenStreetMap. Aucune API key. Gratuit illimité.</div>
+        <span class="t-badge">Cartographie</span>
+      </div>
+      <div class="tech-card">
+        <div class="t-icon">⚡</div>
+        <div class="t-name">Groq + LLaMA 3.1</div>
+        <div class="t-detail">Inférence ultra-rapide. Réponses en &lt;500ms. API gratuite.</div>
+        <span class="t-badge">IA · Gratuit</span>
+      </div>
+      <div class="tech-card">
+        <div class="t-icon">📍</div>
+        <div class="t-name">Overpass API</div>
+        <div class="t-detail">Récupération des DABs réels depuis OpenStreetMap.</div>
+        <span class="t-badge">Données</span>
+      </div>
+    </div>
+
+    <div class="arch-row">
+      <div class="arch-node"><i class="fa-solid fa-mobile-screen-button"></i> App Flutter</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node"><i class="fa-solid fa-wifi"></i> HTTP / REST</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node"><i class="fa-solid fa-robot"></i> Groq API</div>
+      <div class="arch-arrow">+</div>
+      <div class="arch-node"><i class="fa-solid fa-map"></i> Overpass API</div>
+      <div class="arch-arrow">+</div>
+      <div class="arch-node"><i class="fa-solid fa-location-dot"></i> GPS Device</div>
+    </div>
+
+    <span class="watermark light">ATB MOBILE · 2026</span>
+    <span class="slide-num light">07 / 10</span>
+  </div>
+
+  <!-- ══ SLIDE 8 — METRICS ══ -->
+  <div class="slide" id="s8">
+    <div class="s8-header">
+      <div class="eyebrow">Performance & Portée</div>
+      <h2>Chiffres <span>Clés</span></h2>
+    </div>
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="m-num">5</div>
+        <div class="m-label">Écrans principaux<br>entièrement fonctionnels</div>
+        <i class="fa-solid fa-mobile-screen-button m-icon"></i>
+      </div>
+      <div class="metric-card">
+        <div class="m-num">20<span class="m-unit">+</span></div>
+        <div class="m-label">DABs ATB & autres banques<br>pré-chargés</div>
+        <i class="fa-solid fa-location-dot m-icon"></i>
+      </div>
+      <div class="metric-card">
+        <div class="m-num">3</div>
+        <div class="m-label">Langues : Derja,<br>Français, Anglais</div>
+        <i class="fa-solid fa-globe m-icon"></i>
+      </div>
+      <div class="metric-card">
+        <div class="m-num">0<span class="m-unit">€</span></div>
+        <div class="m-label">Coût API maps &<br>chatbot (gratuit)</div>
+        <i class="fa-solid fa-coins m-icon"></i>
+      </div>
+    </div>
+    <div class="bottom-row">
+      <div class="progress-card">
+        <div class="pc-label">Fonctionnalités complètes <span>95%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:95%"></div></div>
+      </div>
+      <div class="progress-card">
+        <div class="pc-label">Performance UI <span>90%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:90%"></div></div>
+      </div>
+      <div class="progress-card">
+        <div class="pc-label">Couverture DABs Tunis <span>80%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div>
+      </div>
+    </div>
+    <span class="watermark dark">ATB MOBILE · 2026</span>
+    <span class="slide-num dark">08 / 10</span>
+  </div>
+
+  <!-- ══ SLIDE 9 — ROADMAP ══ -->
+  <div class="slide" id="s9">
+    <div class="s9-header">
+      <div class="eyebrow">Évolution du Projet</div>
+      <h2>Roadmap de Développement</h2>
+    </div>
+    <div class="timeline">
+      <div class="phase">
+        <div class="phase-dot done"><i class="fa-solid fa-check"></i></div>
+        <div class="phase-content">
+          <div class="ph-date">Phase 1 · Complété</div>
+          <div class="ph-title">Infrastructure & Core UI</div>
+          <div class="ph-items">
+            <span class="ph-item done-item">Navigation 5 onglets</span>
+            <span class="ph-item done-item">Thème ATB burgundy</span>
+            <span class="ph-item done-item">Modèles de données</span>
+            <span class="ph-item done-item">Android permissions</span>
+          </div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-dot done"><i class="fa-solid fa-check"></i></div>
+        <div class="phase-content">
+          <div class="ph-date">Phase 2 · Complété</div>
+          <div class="ph-title">Carte DABs & Assistant IA</div>
+          <div class="ph-items">
+            <span class="ph-item done-item">Flutter Map + OSM</span>
+            <span class="ph-item done-item">Overpass API</span>
+            <span class="ph-item done-item">Chatbot Groq LLaMA</span>
+            <span class="ph-item done-item">Icône personnalisée</span>
+          </div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-dot active"><i class="fa-solid fa-spinner"></i></div>
+        <div class="phase-content">
+          <div class="ph-date">Phase 3 · En cours</div>
+          <div class="ph-title">Optimisation & Polish</div>
+          <div class="ph-items">
+            <span class="ph-item active-item">Tests utilisateurs</span>
+            <span class="ph-item active-item">Animations</span>
+            <span class="ph-item">Biométrie</span>
+            <span class="ph-item">Mode hors-ligne</span>
+          </div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-dot next"><i class="fa-solid fa-rocket"></i></div>
+        <div class="phase-content">
+          <div class="ph-date">Phase 4 · Prévu</div>
+          <div class="ph-title">Intégration Backend ATB & Production</div>
+          <div class="ph-items">
+            <span class="ph-item">API bancaire réelle</span>
+            <span class="ph-item">Paiements en ligne</span>
+            <span class="ph-item">Play Store</span>
+            <span class="ph-item">Analytics</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <span class="watermark dark">ATB MOBILE · 2026</span>
+    <span class="slide-num dark">09 / 10</span>
+  </div>
+
+  <!-- ══ SLIDE 10 — THANK YOU ══ -->
+  <div class="slide" id="s10">
+    <div class="deco-circle"></div>
+    <div class="deco-circle"></div>
+    <div class="content">
+      <div class="logo-big"><span>ATB</span></div>
+      <h2>Merci.<br><em>Baraka Lahu Fik.</em></h2>
+      <p>L'application ATB Mobile est prête — moderne, intelligente, et pensée pour chaque client tunisien.</p>
+      <div class="cta-row">
+        <div class="cta-btn primary-btn"><i class="fa-solid fa-play"></i> Voir la Démo</div>
+        <div class="cta-btn outline-btn"><i class="fa-solid fa-code"></i> Code Source</div>
+      </div>
+      <div class="contact-row">
+        <div class="contact-item"><i class="fa-solid fa-envelope"></i> achourmalek6@gmail.com</div>
+        <div class="contact-item"><i class="fa-brands fa-flutter"></i> Flutter 3.44</div>
+        <div class="contact-item"><i class="fa-solid fa-calendar"></i> Juin 2026</div>
+      </div>
+    </div>
+    <span class="watermark light">ATB MOBILE · 2026</span>
+    <span class="slide-num light">10 / 10</span>
+  </div>
+
+</div><!-- /deck -->
+
+<!-- NAVIGATION -->
+<div class="nav">
+  <button id="prevBtn" onclick="changeSlide(-1)" disabled>← Précédent</button>
+  <div class="dot-nav" id="dotNav"></div>
+  <span class="slide-counter" id="counter">1 / 10</span>
+  <button id="nextBtn" onclick="changeSlide(1)">Suivant →</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  // Build dots
+  const dotNav = document.getElementById('dotNav');
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotNav.appendChild(d);
+  });
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    dotNav.children[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    dotNav.children[current].classList.add('active');
+    document.getElementById('counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('prevBtn').disabled = current === 0;
+    document.getElementById('nextBtn').disabled = current === total - 1;
+  }
+
+  function changeSlide(dir) { goTo(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   changeSlide(-1);
+  });
+
+  // Set deck height to match slide
+  document.getElementById('deck').style.height = '720px';
+</script>
+</body>
+</html>
