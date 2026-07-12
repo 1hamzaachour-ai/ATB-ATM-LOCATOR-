@@ -23,7 +23,7 @@
 
 <br/>
 
-[💼 Business Context](#-business-context) • [✨ Features](#-features) • [🗺️ Live Map](#-live-atm-map) • [🤖 AI Assistant](#-ai-assistant--derja) • [📦 Installation](#-installation) • [🏗️ Architecture](#-architecture) • [🤝 Contributing](#-contributing)
+[💼 Business Context](#-business-context) • [✨ Features](#-features) • [📱 Screenshots](#-screenshots) • [🤖 AI Assistant](#-ai-assistant--derja) • [📦 Installation](#-installation) • [🏗️ Architecture](#-architecture) • [🧪 Quality](#-quality--testing) • [🤝 Contributing](#-contributing)
 
 ---
 
@@ -122,6 +122,22 @@ This isn't a prototype. This isn't a demo. This is a **production-ready** mobile
 </td>
 </tr>
 </table>
+
+---
+
+## 📱 Screenshots
+
+<div align="center">
+
+| Home | Live ATM Map | AI Assistant |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/home.png" width="240" alt="Home screen — balance card and quick actions"/> | <img src="docs/screenshots/map.png" width="240" alt="Live ATM map with filters"/> | <img src="docs/screenshots/chat.png" width="240" alt="AI assistant chatting in Tunisian Derja"/> |
+
+| Card Management | Notifications | Profile |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/cards.png" width="240" alt="Card carousel and security controls"/> | <img src="docs/screenshots/messages.png" width="240" alt="Notifications center"/> | <img src="docs/screenshots/profile.png" width="240" alt="User profile and settings"/> |
+
+</div>
 
 ---
 
@@ -238,6 +254,43 @@ Unit tests cover the Overpass API parser (`ATM.fromOverpass`), distance formatti
 
 ## 🏗️ Architecture
 
+### High-level data flow
+
+```mermaid
+flowchart LR
+    subgraph UI["📱 Screens — Flutter"]
+        MAP[Map]
+        CHAT[Assistance]
+        HOME[Home]
+    end
+
+    subgraph SVC["⚙️ Services — pure Dart"]
+        ATMS[ATMService]
+        CHATS[ChatService]
+        LOC[LocationService]
+        OFF[OfflineMapService]
+    end
+
+    subgraph EXT["🌐 External"]
+        OVERPASS[(Overpass API<br/>live ATM data)]
+        GROQ[(Groq API<br/>LLaMA 3.1-8B)]
+        OSM[(OSM Tile Server)]
+        DB[(SQLite<br/>MBTiles)]
+    end
+
+    MAP --> ATMS
+    MAP --> LOC
+    MAP --> OFF
+    CHAT --> CHATS
+    CHATS -. nearby ATM context .-> ATMS
+    ATMS --> OVERPASS
+    CHATS --> GROQ
+    OFF --> OSM
+    OFF --> DB
+```
+
+### Repository layout
+
 ```
 atb_banking_app/
 │
@@ -288,6 +341,23 @@ atb_banking_app/
 ```
 
 **Layering rule:** `screens → services → models`. UI never talks to an API directly, and models stay pure Dart — which is what makes them unit-testable.
+
+---
+
+## 🧪 Quality & Testing
+
+Every push and pull request runs the full quality gate on **GitHub Actions** ([ci.yml](.github/workflows/ci.yml)):
+
+| Check | Command | Status |
+|-------|---------|--------|
+| Static analysis | `flutter analyze` | ✅ 0 issues |
+| Unit tests | `flutter test` | ✅ 10/10 passing |
+
+Tests target the pure business logic, with no UI mocking required:
+
+- **Overpass API parser** (`ATM.fromOverpass`) — fully-tagged nodes *and* graceful fallbacks when OSM tags are missing
+- **Distance formatting** — meters, kilometers, and unknown-distance edge cases
+- **Offline tile mathematics** — slippy-map tile counting verified against known world-tile counts, bounding-box sanity for all predefined regions
 
 ---
 
