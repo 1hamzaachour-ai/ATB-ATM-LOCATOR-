@@ -138,7 +138,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: m.isUnread ? ATBTheme.primary.withOpacity(0.2) : ATBTheme.divider),
+          border: Border.all(color: m.isUnread ? ATBTheme.primary.withValues(alpha: 0.2) : ATBTheme.divider),
         ),
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),

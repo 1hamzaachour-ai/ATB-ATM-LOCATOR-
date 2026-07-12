@@ -136,7 +136,7 @@ class _MapScreenState extends State<MapScreen> {
             options: MapOptions(
               initialCenter: _tunisCenter,
               initialZoom: 12,
-              onTap: (_, __) => setState(() => _selected = null),
+              onTap: (_, _) => setState(() => _selected = null),
             ),
             children: [
               TileLayer(

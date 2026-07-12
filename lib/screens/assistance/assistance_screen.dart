@@ -173,7 +173,7 @@ class _AssistanceScreenState extends State<AssistanceScreen> {
                     decoration: BoxDecoration(
                       color: ATBTheme.chipBg,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: ATBTheme.primary.withOpacity(0.3)),
+                      border: Border.all(color: ATBTheme.primary.withValues(alpha: 0.3)),
                     ),
                     child: Text(_suggestions[i],
                         style: const TextStyle(
@@ -191,11 +191,11 @@ class _AssistanceScreenState extends State<AssistanceScreen> {
                 const Icon(Icons.psychology_outlined,
                     size: 16, color: ATBTheme.primary),
                 const SizedBox(width: 6),
-                _QuickChip('DAB Ouverts', () => _send('Quels DABs sont ouverts maintenant?')),
+                _quickChip('DAB Ouverts', () => _send('Quels DABs sont ouverts maintenant?')),
                 const SizedBox(width: 6),
-                _QuickChip('Retrait sans carte', () => _send('Y\'a-t-il des DABs avec retrait sans carte?')),
+                _quickChip('Retrait sans carte', () => _send('Y\'a-t-il des DABs avec retrait sans carte?')),
                 const SizedBox(width: 6),
-                _QuickChip('Commissions', () => _send('Quelles sont les commissions de retrait?')),
+                _quickChip('Commissions', () => _send('Quelles sont les commissions de retrait?')),
               ],
             ),
           ),
@@ -246,14 +246,14 @@ class _AssistanceScreenState extends State<AssistanceScreen> {
     );
   }
 
-  Widget _QuickChip(String label, VoidCallback onTap) => GestureDetector(
+  Widget _quickChip(String label, VoidCallback onTap) => GestureDetector(
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: ATBTheme.chipBg,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: ATBTheme.primary.withOpacity(0.2)),
+            border: Border.all(color: ATBTheme.primary.withValues(alpha: 0.2)),
           ),
           child: Text(label,
               style:
@@ -305,7 +305,7 @@ class _MessageBubble extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 4,
                           offset: const Offset(0, 2))
                     ],
@@ -492,7 +492,7 @@ class _TypingIndicatorState extends State<_TypingIndicator>
               ),
               child: AnimatedBuilder(
                 animation: _anim,
-                builder: (_, __) => Row(
+                builder: (_, _) => Row(
                   children: List.generate(3, (i) {
                     final t = (_anim.value - i * 0.2).clamp(0.0, 1.0);
                     final y = -4 * (t < 0.5 ? t * 2 : (1 - t) * 2);

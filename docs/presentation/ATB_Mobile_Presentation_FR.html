@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ATB Mobile — Présentation du projet</title>
+<style>
+  :root{
+    --crimson:#8B1832;
+    --crimson-light:#B22C4A;
+    --crimson-dark:#5C0F21;
+    --green:#2E7D32;
+    --bg:#0e0a0c;
+    --slide-bg:#fbf7f8;
+    --ink:#1A1A1A;
+    --muted:#6b6b6b;
+    --chip:#FFEEF1;
+    --line:#ecdfe3;
+    --code-bg:#241318;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 800px at 80% -10%, rgba(139,24,50,.45), transparent 60%),
+      radial-gradient(900px 700px at -10% 110%, rgba(178,44,74,.35), transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    overflow:hidden;
+  }
+
+  .deck{height:100vh;width:100vw;position:relative}
+  .slide{
+    position:absolute;inset:0;
+    display:none;
+    padding:60px 80px;
+    background:var(--slide-bg);
+    margin:auto;
+    width:min(1180px,92vw);
+    height:min(720px,90vh);
+    top:0;bottom:0;left:0;right:0;
+    border-radius:24px;
+    box-shadow:0 40px 120px rgba(0,0,0,.55);
+    overflow:hidden;
+    animation:fade .45s ease;
+    flex-direction:column;
+  }
+  .slide.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(14px) scale(.99)}to{opacity:1;transform:none}}
+  .slide::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:10px;
+    background:linear-gradient(var(--crimson),var(--crimson-light));
+  }
+
+  h1{font-size:54px;line-height:1.05;letter-spacing:-1px;color:var(--crimson-dark);font-weight:800}
+  h2{font-size:33px;color:var(--crimson-dark);font-weight:800;letter-spacing:-.5px;margin-bottom:6px}
+  h3{font-size:19px;color:var(--crimson);font-weight:700;margin-bottom:6px}
+  p,li{font-size:18px;line-height:1.55;color:#322}
+  .muted{color:var(--muted)}
+  .kicker{
+    display:inline-block;font-size:13px;font-weight:800;letter-spacing:2px;
+    text-transform:uppercase;color:var(--crimson);
+    background:var(--chip);padding:6px 14px;border-radius:999px;margin-bottom:16px;
+    border:1px solid var(--line);
+  }
+  .lead{font-size:22px;color:#433;max-width:80ch;line-height:1.6}
+  .slide-body{flex:1;min-height:0;overflow:auto;padding-right:6px}
+  .slide-body::-webkit-scrollbar{width:8px}
+  .slide-body::-webkit-scrollbar-thumb{background:#d8c4ca;border-radius:8px}
+
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .row{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+  .center{align-items:center}
+
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px 22px;box-shadow:0 6px 18px rgba(92,15,33,.06);
+  }
+  .card h3{display:flex;align-items:center;gap:10px}
+  .card .ic{font-size:24px}
+  .card p,.card li{font-size:15.5px;line-height:1.5}
+  .card ul{margin-left:18px;margin-top:6px}
+  .card ul li{margin-bottom:3px}
+
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--chip);color:var(--crimson-dark);
+    border:1px solid var(--line);border-radius:999px;
+    padding:8px 16px;font-weight:700;font-size:14px;
+  }
+
+  table{width:100%;border-collapse:collapse;font-size:15.5px}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line)}
+  th{color:var(--crimson-dark);font-size:13px;text-transform:uppercase;letter-spacing:.5px}
+  tr:nth-child(even) td{background:#fff}
+  td b{color:var(--crimson-dark)}
+
+  code,pre{font-family:"SF Mono",ui-monospace,"Cascadia Code",Consolas,monospace}
+  pre{
+    background:var(--code-bg);color:#f4e9ec;border-radius:14px;
+    padding:18px 20px;font-size:14px;line-height:1.6;overflow:auto;
+    border:1px solid #3a2027;
+  }
+  pre .c{color:#ff9bb0}
+  pre .g{color:#7fd28a}
+  pre .m{color:#8aa0b4}
+  pre .y{color:#f0c674}
+
+  .flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .step{
+    background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:12px 16px;font-size:14.5px;font-weight:600;color:#322;box-shadow:0 4px 12px rgba(92,15,33,.05)
+  }
+  .arrow{color:var(--crimson);font-size:22px;font-weight:800}
+
+  .stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:22px;text-align:center}
+
+  ul.clean{list-style:none}
+  ul.clean li{position:relative;padding-left:30px;margin-bottom:11px}
+  ul.clean li::before{content:"▸";position:absolute;left:6px;color:var(--crimson);font-weight:800}
+  .check li::before{content:"✓";color:var(--green);font-weight:800}
+  .todo li::before{content:"○";color:var(--muted)}
+
+  /* ===== Phone frame for screenshots ===== */
+  .phone{
+    flex:none;width:208px;border-radius:36px;padding:11px;background:#150e11;
+    border:1px solid #3a2027;box-shadow:0 26px 60px rgba(0,0,0,.4);position:relative;
+  }
+  .phone::before{content:"";position:absolute;top:18px;left:50%;transform:translateX(-50%);
+    width:70px;height:6px;border-radius:6px;background:#000;opacity:.6;z-index:2}
+  .phone img{width:100%;display:block;border-radius:26px;background:#eee}
+  .phone.sm{width:150px;border-radius:24px;padding:7px}
+  .phone.sm img{border-radius:18px}
+  .phone.sm::before{width:40px;height:4px;top:11px}
+  .shot-cap{text-align:center;font-size:12px;color:var(--muted);margin-top:8px;font-weight:600}
+
+  .chat{background:#f1edee;border-radius:16px;padding:14px;border:1px solid var(--line)}
+  .bubble{max-width:80%;padding:9px 13px;border-radius:14px;font-size:13.5px;margin-bottom:9px;line-height:1.45}
+  .bot{background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+  .usr{background:var(--crimson);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+
+  .title-slide{background:linear-gradient(135deg,var(--crimson),var(--crimson-dark));color:#fff;justify-content:center}
+  .title-slide::before{background:rgba(255,255,255,.25)}
+  .title-slide h1{color:#fff;font-size:64px}
+  .title-slide .logo{
+    width:96px;height:96px;border-radius:24px;background:#fff;color:var(--crimson);
+    display:grid;place-items:center;font-weight:800;font-size:30px;margin-bottom:24px;
+    box-shadow:0 16px 40px rgba(0,0,0,.3)
+  }
+  .title-slide .sub{font-size:23px;color:rgba(255,255,255,.9);margin-top:14px;max-width:72ch}
+  .title-slide .badges{margin-top:28px;display:flex;gap:10px;flex-wrap:wrap}
+  .title-slide .badge{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+    padding:8px 15px;border-radius:999px;font-size:14px;font-weight:700}
+  .title-slide .by{margin-top:34px;font-size:16px;color:rgba(255,255,255,.85)}
+
+  .chrome{position:fixed;bottom:18px;left:0;right:0;display:flex;justify-content:center;gap:14px;align-items:center;z-index:50}
+  .btn{
+    background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);
+    width:44px;height:44px;border-radius:999px;font-size:20px;cursor:pointer;
+    display:grid;place-items:center;transition:.15s;backdrop-filter:blur(6px)
+  }
+  .btn:hover{background:rgba(255,255,255,.25)}
+  .counter{color:#fff;font-weight:700;font-size:14px;letter-spacing:1px;min-width:64px;text-align:center}
+  .progress{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,var(--crimson-light),#ffd0db);z-index:60;transition:width .3s}
+  .hint{position:fixed;top:16px;right:20px;color:rgba(255,255,255,.5);font-size:12px;z-index:50}
+  .footer-tag{position:absolute;bottom:24px;right:38px;font-size:12px;color:#b9a3a9;font-weight:700;letter-spacing:1px}
+
+  @media print{
+    body{overflow:visible;background:#fff}
+    .deck{height:auto}
+    .slide{display:flex!important;position:relative;page-break-after:always;box-shadow:none;
+      width:100%;height:96vh;margin-bottom:0;border-radius:0;animation:none}
+    .chrome,.progress,.hint{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="hint">← → / Espace pour naviguer · F plein écran · P imprimer</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · TITRE -->
+  <section class="slide title-slide active">
+    <div class="logo">ATB</div>
+    <h1>ATB Mobile</h1>
+    <div class="sub">Une application mobile bancaire complète pour l'<b>Arab Tunisian Bank</b> — carte des DAB en temps réel, un assistant IA qui parle le <em>derja</em> tunisien, gestion des cartes et cartes 100&nbsp;% hors-ligne.</div>
+    <div class="badges">
+      <span class="badge">Flutter 3.44 · Dart</span>
+      <span class="badge">Groq · LLaMA 3.1</span>
+      <span class="badge">OpenStreetMap</span>
+      <span class="badge">Android &amp; iOS</span>
+      <span class="badge">Hors-ligne</span>
+    </div>
+    <div class="by">Réalisée par <b>Hamza Achour</b> · Faite en Tunisie 🇹🇳</div>
+  </section>
+
+  <!-- 2 · PRÉSENTATION -->
+  <section class="slide">
+    <span class="kicker">Présentation</span>
+    <h2>Qu'est-ce que ATB Mobile ?</h2>
+    <div class="slide-body">
+      <p class="lead">Une application bancaire de qualité production, développée de zéro en <b>Flutter</b> : un seul code source fonctionne à la fois sur Android et iOS. Elle adopte l'identité visuelle bordeaux officielle de la banque et fonctionne même sans connexion internet.</p>
+      <div class="grid g3" style="margin-top:24px">
+        <div class="card"><h3>🎯 L'objectif</h3><p>Aider les clients ATB à trouver le DAB / l'agence le plus proche, obtenir des réponses instantanées sur les services bancaires et gérer leurs cartes — depuis une seule application.</p></div>
+        <div class="card"><h3>🧩 Ce qui la distingue</h3><p>Des données DAB réelles issues d'OpenStreetMap, un assistant IA qui maîtrise le dialecte tunisien, et des cartes téléchargeables hors-ligne.</p></div>
+        <div class="card"><h3>⚙️ Comment c'est construit</h3><p>Une séparation nette entre <b>models</b>, <b>services</b> et <b>screens</b>. Aucun backend requis — elle communique directement avec des API publiques.</p></div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 3 · PROBLÈME -->
+  <section class="slide">
+    <span class="kicker">Motivation</span>
+    <h2>Le problème résolu</h2>
+    <div class="slide-body">
+      <div class="grid g2" style="margin-top:8px">
+        <div class="card"><h3>😣 Avant</h3>
+          <ul class="clean">
+            <li>« Où est le DAB le plus proche qui est vraiment ouvert ? »</li>
+            <li>« Lequel accepte les dépôts ou le retrait sans carte ? »</li>
+            <li>Des réponses bancaires uniquement en français ou en arabe classique, pas comme les gens parlent vraiment.</li>
+            <li>Des cartes inutilisables sans données / signal.</li>
+          </ul>
+        </div>
+        <div class="card" style="border-color:var(--crimson)"><h3>✅ Avec ATB Mobile</h3>
+          <ul class="clean check">
+            <li>Carte des DAB en direct, triée par distance, avec statut ouvert/fermé.</li>
+            <li>Filtres en un clic : Ouvert · Dépôt · Sans carte.</li>
+            <li>Un assistant IA qui répond en <b>derja tunisien</b>, en français ou en anglais.</li>
+            <li>Téléchargez une ville entière et utilisez la carte hors-ligne.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 4 · FONCTIONNALITÉS -->
+  <section class="slide">
+    <span class="kicker">Fonctionnalités</span>
+    <h2>Les six piliers de l'application</h2>
+    <div class="slide-body">
+      <div class="grid g3" style="margin-top:12px">
+        <div class="card"><h3><span class="ic">🗺️</span> Carte des DAB</h3><p>Emplacements des DAB en temps réel, marqueurs colorés, point GPS, filtres intelligents et navigation.</p></div>
+        <div class="card"><h3><span class="ic">🤖</span> Assistant IA</h3><p>Groq LLaMA répond en derja tunisien, français et anglais, avec le contexte des DAB proches.</p></div>
+        <div class="card"><h3><span class="ic">💳</span> Gestion des cartes</h3><p>Carrousel de cartes, blocage, limites, historique des transactions, QR et paiement mobile.</p></div>
+        <div class="card"><h3><span class="ic">📱</span> Cartes hors-ligne</h3><p>Téléchargez des régions en MBTiles, reprise possible, fonctionne sans aucune connexion.</p></div>
+        <div class="card"><h3><span class="ic">🔔</span> Messages &amp; alertes</h3><p>Notifications groupées par date, filtres Banque / Sécurité / Contacts.</p></div>
+        <div class="card"><h3><span class="ic">👤</span> Profil &amp; réglages</h3><p>Aperçu du compte avec réglages de sécurité, notifications et langue.</p></div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 5 · NAVIGATION -->
+  <section class="slide">
+    <span class="kicker">Structure de l'app</span>
+    <h2>Comment on navigue dans l'application</h2>
+    <div class="slide-body">
+      <p class="lead">Une barre de navigation inférieure à <b>5 onglets</b>, conservés dans un <code>IndexedStack</code> : le changement d'onglet est instantané et ne reconstruit jamais un écran.</p>
+      <div class="row" style="margin-top:22px">
+        <span class="pill">🏠 Accueil</span><span class="arrow">·</span>
+        <span class="pill">💳 Cartes</span><span class="arrow">·</span>
+        <span class="pill">💬 Messages</span><span class="arrow">·</span>
+        <span class="pill">👤 Profil</span><span class="arrow">·</span>
+        <span class="pill">🤖 Assistance</span>
+      </div>
+      <div class="card" style="margin-top:24px">
+        <h3>La carte s'ouvre à la demande</h3>
+        <p>La carte des DAB en plein écran est accessible via l'action rapide <b>« DAB »</b> de l'écran d'accueil, ce qui garde la navigation principale épurée tout en gardant la carte à un clic.</p>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 6 · ACCUEIL + capture -->
+  <section class="slide">
+    <span class="kicker">Fonctionnalité 1</span>
+    <h2>🏠 Accueil — votre compte en un coup d'œil</h2>
+    <div class="slide-body">
+      <div class="row center" style="gap:40px">
+        <div style="flex:1">
+          <ul class="clean">
+            <li>En-tête en dégradé (<code>SliverAppBar</code>) qui salue l'utilisateur (<i>« Bonjour, Sami ! »</i>) et affiche le numéro de compte masqué.</li>
+            <li><b>Carte de solde</b> affichant le solde disponible (4 250,000 TND) avec revenus et dépenses.</li>
+            <li><b>Actions rapides :</b> Virement, Paiement, DAB, Recharge — la tuile DAB lance la carte.</li>
+            <li><b>Dernières transactions</b> avec code couleur crédit/débit (vert pour les entrées).</li>
+          </ul>
+        </div>
+        <div>
+          <div class="phone"><img src="presentation_assets/home.png" alt="Écran d'accueil"></div>
+          <div class="shot-cap">Écran d'accueil</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 7 · CARTE DAB + capture -->
+  <section class="slide">
+    <span class="kicker">Fonctionnalité 2 · la pièce maîtresse</span>
+    <h2>🗺️ Carte des DAB en temps réel</h2>
+    <div class="slide-body">
+      <div class="row center" style="gap:40px">
+        <div style="flex:1">
+          <ul class="clean">
+            <li>Basée sur <code>flutter_map</code> + tuiles gratuites OpenStreetMap — aucune clé API requise.</li>
+            <li>Récupère les vrais DAB via l'<b>API Overpass</b> autour de l'utilisateur (rayon 50 km), triés par distance.</li>
+            <li><b>Marqueurs colorés :</b> 🔴 bordeaux = ouvert · ⚫ gris = fermé · 🟡 contour ambre = sélectionné.</li>
+            <li>Point GPS bleu animé pour la position de l'utilisateur.</li>
+            <li>Carte d'info en bas avec <b>Itinéraire</b> (lien Google Maps) &amp; <b>Détails</b>.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="phone"><img src="presentation_assets/map.png" alt="Carte des DAB"></div>
+          <div class="shot-cap">Carte des DAB &amp; agences</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 8 · FLUX CARTE -->
+  <section class="slide">
+    <span class="kicker">Comment la carte se charge</span>
+    <h2>De « ouvrir la carte » aux DAB triés</h2>
+    <div class="slide-body">
+      <div class="flow" style="margin:22px 0">
+        <span class="step">📍 Demande GPS<br><span class="muted" style="font-weight:400">gestion fine des permissions</span></span>
+        <span class="arrow">→</span>
+        <span class="step">🌐 Requête API Overpass<br><span class="muted" style="font-weight:400">timeout 15 s</span></span>
+        <span class="arrow">→</span>
+        <span class="step">📏 Calcul des distances<br><span class="muted" style="font-weight:400">tri par proximité</span></span>
+        <span class="arrow">→</span>
+        <span class="step">🗺️ Centrage utilisateur<br><span class="muted" style="font-weight:400">zoom 13</span></span>
+      </div>
+      <div class="card" style="border-color:var(--crimson)">
+        <h3>🛟 Robuste par conception — la solution de repli</h3>
+        <p>Si le GPS est refusé ou que l'API Overpass est lente / injoignable, l'application bascule instantanément sur <b>20 DAB tunisiens préchargés</b> (ATB, STB, BNA, BIAT, Zitouna, UIB, Amen…). La carte n'est <b>jamais vide</b>, même sans réseau.</p>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 9 · ASSISTANT IA + capture -->
+  <section class="slide">
+    <span class="kicker">Fonctionnalité 3</span>
+    <h2>🤖 Assistant IA — il parle tunisien</h2>
+    <div class="slide-body">
+      <div class="row center" style="gap:34px">
+        <div style="flex:1">
+          <ul class="clean">
+            <li>Propulsé par <b>Groq + LLaMA 3.1-8B</b> — inférence très rapide.</li>
+            <li>Une personnalité trilingue : s'aligne sur l'utilisateur en <b>derja</b>, français ou anglais, même en alternance de langues.</li>
+            <li>Les 10 derniers messages + les 5 DAB proches sont injectés dans le prompt pour des réponses personnalisées.</li>
+            <li>Quand une réponse cite un DAB, une <b>carte DAB</b> interactive apparaît dans le chat.</li>
+            <li>Indicateur de saisie animé ; réponses simulées hors-ligne si pas de clé API.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="phone"><img src="presentation_assets/chat.png" alt="Assistant IA"></div>
+          <div class="shot-cap">Assistance IA · derja</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 10 · PIPELINE IA -->
+  <section class="slide">
+    <span class="kicker">Comment l'assistant répond</span>
+    <h2>Le pipeline de requête IA</h2>
+    <div class="slide-body">
+      <pre><span class="m">// chat_service.dart</span>
+messages = [
+  { role: <span class="g">'system'</span>,  content: personaTrilingue + dabProches },  <span class="m">// contexte</span>
+  ...10DerniersMessages,                                       <span class="m">// mémoire</span>
+  { role: <span class="g">'user'</span>,    content: messageUtilisateur },
+];
+
+POST <span class="y">https://api.groq.com/openai/v1/chat/completions</span>
+  model: <span class="g">'llama-3.1-8b-instant'</span>
+  max_tokens: <span class="c">512</span>   temperature: <span class="c">0.7</span>
+
+<span class="m">// dégradation gracieuse : si pas de clé / réseau coupé →</span>
+<span class="m">// des réponses simulées en derja gardent la démo vivante</span></pre>
+      <div class="row" style="margin-top:16px">
+        <span class="pill">Zéro blabla · 4 phrases max</span>
+        <span class="pill">Jamais en arabe classique sauf demande</span>
+        <span class="pill">Renvoie au 71 110 500 si incertain</span>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 11 · HORS-LIGNE -->
+  <section class="slide">
+    <span class="kicker">Fonctionnalité 4 · la partie difficile</span>
+    <h2>📱 Cartes hors-ligne avec MBTiles</h2>
+    <div class="slide-body">
+      <div class="grid g2">
+        <div>
+          <ul class="clean">
+            <li>Télécharge toutes les tuiles d'une région et les stocke dans un seul fichier <b>SQLite (.mbtiles)</b>.</li>
+            <li><b>Reprise :</b> les tuiles déjà téléchargées sont ignorées, donc un téléchargement interrompu reprend simplement.</li>
+            <li>Respecte les limites d'OSM (50 ms entre tuiles) et un User-Agent personnalisé poli.</li>
+            <li>Barre de progression en direct avec % et nombre de tuiles ; annulable en cours.</li>
+            <li>Un <code>MBTilesTileProvider</code> sur-mesure relie SQLite → flutter_map pour un rendu sans internet.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Régions préconfigurées</h3>
+          <table>
+            <tr><th>Région</th><th>Zoom</th><th>Taille est.</th></tr>
+            <tr><td><b>Grand Tunis</b></td><td>10–15</td><td>~90 Mo</td></tr>
+            <tr><td><b>Sfax</b></td><td>10–15</td><td>~45 Mo</td></tr>
+            <tr><td><b>Toute la Tunisie</b></td><td>5–11</td><td>~80 Mo</td></tr>
+          </table>
+          <p class="muted" style="font-size:14px;margin-top:12px">Le nombre de tuiles est calculé par les maths « slippy-map » ; les lignes sont stockées en ordre TMS. Conservé dans le dossier privé de l'app — aucune permission de stockage nécessaire.</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 12 · AUTRES ÉCRANS + captures -->
+  <section class="slide">
+    <span class="kicker">Fonctionnalités 5 &amp; 6</span>
+    <h2>💳 Cartes · 🔔 Messages · 👤 Profil</h2>
+    <div class="slide-body">
+      <div class="row" style="gap:24px;align-items:flex-start;justify-content:center;margin-top:6px">
+        <div style="text-align:center">
+          <div class="phone sm" style="margin:auto"><img src="presentation_assets/cards.png" alt="Cartes"></div>
+          <div class="shot-cap"><b>Cartes</b><br>Carrousel VISA / Mastercard, services, limites</div>
+        </div>
+        <div style="text-align:center">
+          <div class="phone sm" style="margin:auto"><img src="presentation_assets/messages.png" alt="Messages"></div>
+          <div class="shot-cap"><b>Messages</b><br>Alertes groupées par date &amp; filtres</div>
+        </div>
+        <div style="text-align:center">
+          <div class="phone sm" style="margin:auto"><img src="presentation_assets/profile.png" alt="Profil"></div>
+          <div class="shot-cap"><b>Profil</b><br>Aperçu du compte &amp; réglages</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 13 · ARCHITECTURE -->
+  <section class="slide">
+    <span class="kicker">Ingénierie</span>
+    <h2>Une architecture claire en couches</h2>
+    <div class="slide-body">
+      <div class="grid g2">
+        <div>
+          <pre>lib/
+├─ <span class="c">config/</span>     secrets (gitignored) + exemple
+├─ <span class="c">models/</span>     ATM · ChatMessage
+├─ <span class="c">services/</span>   logique métier &amp; API
+│   ├─ atm_service        <span class="m">// Overpass + repli</span>
+│   ├─ chat_service       <span class="m">// Groq LLaMA</span>
+│   ├─ location_service   <span class="m">// GPS + distance</span>
+│   ├─ offline_map_service<span class="m">// MBTiles</span>
+│   └─ mbtiles_provider   <span class="m">// SQLite → carte</span>
+├─ <span class="c">screens/</span>    home · map · cartes · messages
+│              profil · assistance · atm_detail
+├─ theme.dart   <span class="m">// couleurs de marque</span>
+└─ main.dart    <span class="m">// point d'entrée</span></pre>
+        </div>
+        <div>
+          <h3>Pourquoi cette structure</h3>
+          <ul class="clean">
+            <li><b>Models</b> = données pures (avec un parseur JSON Overpass).</li>
+            <li><b>Services</b> = toutes les I/O et la logique, testables et sans UI.</li>
+            <li><b>Screens</b> = présentation uniquement ; ils appellent les services.</li>
+            <li>Les clés API vivent dans un <code>secrets.dart</code> <b>gitignored</b> avec un modèle versionné — sûr pour l'open-source.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 14 · STACK -->
+  <section class="slide">
+    <span class="kicker">Stack technique</span>
+    <h2>Avec quoi c'est construit — et pourquoi</h2>
+    <div class="slide-body">
+      <table>
+        <tr><th>Couche</th><th>Technologie</th><th>Pourquoi</th></tr>
+        <tr><td><b>Framework</b></td><td>Flutter 3.44 / Dart</td><td>Un seul code → Android &amp; iOS</td></tr>
+        <tr><td><b>Cartes</b></td><td>flutter_map + OpenStreetMap</td><td>Gratuit, sans clé API, contrôle total</td></tr>
+        <tr><td><b>IA</b></td><td>API Groq · LLaMA 3.1-8B</td><td>Offre gratuite, inférence ultra-rapide</td></tr>
+        <tr><td><b>Données DAB</b></td><td>API Overpass</td><td>Vraies données OSM pour toute la Tunisie</td></tr>
+        <tr><td><b>Cartes hors-ligne</b></td><td>MBTiles (sqflite)</td><td>Un fichier par région, avec reprise</td></tr>
+        <tr><td><b>Localisation</b></td><td>geolocator</td><td>Permissions + calcul de distance</td></tr>
+        <tr><td><b>Réseau</b></td><td>http + Dio</td><td>Appels REST + téléchargement de tuiles</td></tr>
+        <tr><td><b>Navigation GPS</b></td><td>url_launcher</td><td>Liens profonds Google Maps</td></tr>
+      </table>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 15 · DESIGN -->
+  <section class="slide">
+    <span class="kicker">Design</span>
+    <h2>🎨 Une identité visuelle cohérente</h2>
+    <div class="slide-body">
+      <p class="lead">Chaque écran suit la palette officielle d'ATB, appliquée via un unique thème Material 3 pour que couleurs et composants restent cohérents dans toute l'application.</p>
+      <div class="grid g4" style="margin-top:22px">
+        <div class="stat" style="background:#8B1832;color:#fff;border:none"><div style="font-weight:800;font-size:18px">Bordeaux</div><div style="opacity:.85;font-size:13px;margin-top:6px">#8B1832 · primaire</div></div>
+        <div class="stat" style="background:#5C0F21;color:#fff;border:none"><div style="font-weight:800;font-size:18px">Burgundy</div><div style="opacity:.85;font-size:13px;margin-top:6px">#5C0F21 · foncé</div></div>
+        <div class="stat" style="background:#B22C4A;color:#fff;border:none"><div style="font-weight:800;font-size:18px">Rose</div><div style="opacity:.85;font-size:13px;margin-top:6px">#B22C4A · clair</div></div>
+        <div class="stat" style="background:#2E7D32;color:#fff;border:none"><div style="font-weight:800;font-size:18px">Vert</div><div style="opacity:.85;font-size:13px;margin-top:6px">#2E7D32 · succès</div></div>
+      </div>
+      <div class="row" style="margin-top:22px">
+        <span class="pill">Material 3</span>
+        <span class="pill">Cartes arrondies 12–16px</span>
+        <span class="pill">Ombres douces</span>
+        <span class="pill">Onglets IndexedStack</span>
+        <span class="pill">Verrouillé en portrait</span>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 16 · POINTS FORTS -->
+  <section class="slide">
+    <span class="kicker">Points techniques forts</span>
+    <h2>Des choix d'ingénierie dont je suis fier</h2>
+    <div class="slide-body">
+      <div class="grid g2" style="margin-top:6px">
+        <div class="card"><h3>🛟 Ne casse jamais</h3><p>Chaque appel externe (GPS, Overpass, Groq) a une solution de repli — DAB préchargés, réponses IA simulées, tuiles en cache. L'app reste utilisable hors-ligne ou si une API tombe.</p></div>
+        <div class="card"><h3>🔁 Téléchargements avec reprise</h3><p>Les téléchargements de tuiles enregistrent un point de contrôle au niveau de chaque tuile dans SQLite : une coupure ne coûte rien, ça reprend exactement où ça s'est arrêté.</p></div>
+        <div class="card"><h3>🧠 IA contextuelle</h3><p>L'assistant n'est pas générique — on lui fournit les vrais DAB proches de l'utilisateur et la conversation récente, donc les réponses sont précises et ancrées.</p></div>
+        <div class="card"><h3>🔐 Sûr pour l'open-source</h3><p>Les secrets sont isolés et gitignored avec un modèle versionné : les contributeurs peuvent lancer l'app sans jamais divulguer de clé.</p></div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 17 · GALERIE -->
+  <section class="slide">
+    <span class="kicker">Aperçu</span>
+    <h2>Galerie de l'application</h2>
+    <div class="slide-body">
+      <div class="row" style="gap:16px;justify-content:center;align-items:flex-start;margin-top:4px;flex-wrap:nowrap">
+        <div style="text-align:center"><div class="phone sm" style="width:128px"><img src="presentation_assets/home.png"></div><div class="shot-cap">Accueil</div></div>
+        <div style="text-align:center"><div class="phone sm" style="width:128px"><img src="presentation_assets/map.png"></div><div class="shot-cap">Carte DAB</div></div>
+        <div style="text-align:center"><div class="phone sm" style="width:128px"><img src="presentation_assets/chat.png"></div><div class="shot-cap">Assistant IA</div></div>
+        <div style="text-align:center"><div class="phone sm" style="width:128px"><img src="presentation_assets/cards.png"></div><div class="shot-cap">Cartes</div></div>
+        <div style="text-align:center"><div class="phone sm" style="width:128px"><img src="presentation_assets/profile.png"></div><div class="shot-cap">Profil</div></div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 18 · FEUILLE DE ROUTE -->
+  <section class="slide">
+    <span class="kicker">Feuille de route</span>
+    <h2>Fait &amp; à venir</h2>
+    <div class="slide-body">
+      <div class="grid g2">
+        <div class="card"><h3>✅ Livré</h3>
+          <ul class="clean check">
+            <li>Carte des DAB en direct (API Overpass)</li>
+            <li>Chatbot IA en derja tunisien</li>
+            <li>Écran de gestion des cartes</li>
+            <li>Téléchargement de cartes hors-ligne (MBTiles)</li>
+            <li>Icône d'application ATB personnalisée</li>
+          </ul>
+        </div>
+        <div class="card"><h3>🔜 Prévu</h3>
+          <ul class="clean todo">
+            <li>Authentification biométrique</li>
+            <li>Intégration du vrai backend ATB</li>
+            <li>Notifications push</li>
+            <li>Publication Play Store / App Store</li>
+            <li>Mode sombre</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 19 · MERCI -->
+  <section class="slide title-slide">
+    <div class="logo">ATB</div>
+    <h1>Merci</h1>
+    <div class="sub">ATB Mobile — une banque mobile rapide, intelligente et prête hors-ligne, construite pour la Tunisie avec Flutter &amp; l'IA.</div>
+    <div class="badges">
+      <span class="badge">🗺️ Carte en direct</span>
+      <span class="badge">🤖 IA en derja</span>
+      <span class="badge">📱 Hors-ligne</span>
+      <span class="badge">💳 Gestion des cartes</span>
+    </div>
+    <div class="by">Hamza Achour · Vos questions sont les bienvenues 🙌</div>
+  </section>
+
+</div>
+
+<div class="chrome">
+  <button class="btn" id="prev" aria-label="Précédent">‹</button>
+  <div class="counter" id="counter">1 / 19</div>
+  <button class="btn" id="next" aria-label="Suivant">›</button>
+</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  const counter=document.getElementById('counter');
+  const progress=document.getElementById('progress');
+  function show(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    counter.textContent=(i+1)+' / '+slides.length;
+    progress.style.width=((i+1)/slides.length*100)+'%';
+  }
+  document.getElementById('next').onclick=()=>show(i+1);
+  document.getElementById('prev').onclick=()=>show(i-1);
+  document.addEventListener('keydown',e=>{
+    if(['ArrowRight','ArrowDown',' ','PageDown'].includes(e.key)){e.preventDefault();show(i+1);}
+    else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();show(i-1);}
+    else if(e.key==='Home'){show(0);}
+    else if(e.key==='End'){show(slides.length-1);}
+    else if(e.key.toLowerCase()==='f'){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
+    else if(e.key.toLowerCase()==='p'){window.print();}
+  });
+  let x0=null;
+  document.addEventListener('touchstart',e=>x0=e.touches[0].clientX);
+  document.addEventListener('touchend',e=>{
+    if(x0===null)return;
+    const dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50)show(i+(dx<0?1:-1));
+    x0=null;
+  });
+  show(0);
+</script>
+</body>
+</html>

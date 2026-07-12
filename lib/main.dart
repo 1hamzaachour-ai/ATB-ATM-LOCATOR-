@@ -15,7 +15,7 @@ class ATBApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ATB Banking',
+      title: 'TGAP',
       debugShowCheckedModeBanner: false,
       theme: ATBTheme.lightTheme,
       home: const MainScreen(),

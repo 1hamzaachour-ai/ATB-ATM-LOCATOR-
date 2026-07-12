@@ -48,7 +48,7 @@ class ProfilScreen extends StatelessWidget {
                             backgroundColor: Colors.white24,
                             child: CircleAvatar(
                               radius: 40,
-                              backgroundColor: Colors.white.withOpacity(0.15),
+                              backgroundColor: Colors.white.withValues(alpha: 0.15),
                               child: const Text('S',
                                   style: TextStyle(
                                       fontSize: 32,

@@ -9,11 +9,11 @@ class MBTilesTileProvider extends TileProvider {
   MBTilesTileProvider(this.db);
 
   @override
-  ImageProvider getImage(TileCoordinates coords, TileLayer options) {
-    final z = coords.z.toInt();
-    final x = coords.x.toInt();
+  ImageProvider getImage(TileCoordinates coordinates, TileLayer options) {
+    final z = coordinates.z.toInt();
+    final x = coordinates.x.toInt();
     // MBTiles uses TMS (Y axis flipped compared to XYZ/OSM)
-    final y = (1 << z) - 1 - coords.y.toInt();
+    final y = (1 << z) - 1 - coordinates.y.toInt();
     return _MBTilesImageProvider(db: db, z: z, x: x, y: y);
   }
 

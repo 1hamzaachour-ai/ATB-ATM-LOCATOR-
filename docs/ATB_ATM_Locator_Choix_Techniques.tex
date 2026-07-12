@@ -1,0 +1,687 @@
+%==============================================================================
+%  ATB ATM LOCATOR -- Technical Research Paper / Article de recherche technique
+%  Bilingual edition : Version Francaise + English Version
+%  Compile with : pdflatex (run twice for the table of contents / references)
+%  Tested with a standard TeX Live / MiKTeX distribution.
+%==============================================================================
+\documentclass[11pt,a4paper]{article}
+
+%------------------------------------------------------------------ Encoding
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+%------------------------------------------------------------------ Languages
+% The last declared language is the default; we switch explicitly per \part.
+\usepackage[english,french]{babel}
+
+%------------------------------------------------------------------ Packages
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=[HTML]{8B1832},
+  urlcolor=[HTML]{8B1832},
+  citecolor=[HTML]{8B1832},
+  pdftitle={ATB ATM Locator -- Technical Choices and Architecture},
+  pdfauthor={Hamza Achour}
+}
+
+%------------------------------------------------------------------ Helpers
+\definecolor{atbcrimson}{HTML}{8B1832}
+\newcommand{\code}[1]{\texttt{#1}}
+
+%==============================================================================
+\title{\textbf{Choix Techniques et Architecture d'une Application Mobile\\
+de Geolocalisation Bancaire}\\[4pt]
+\large Etude de cas du projet \textit{ATB ATM Locator}\\[10pt]
+\textbf{Technical Choices and Architecture of a Geolocation-Based\\
+Mobile Banking Application}\\[4pt]
+\large A Case Study of the \textit{ATB ATM Locator} Project}
+
+\author{
+  Hamza Achour\\
+  \small Senior Mobile Software Engineer \& Independent Researcher\\
+  \small Arab Tunisian Bank --- Mobile Innovation (Case Study)\\
+  \small \texttt{1hamza.achour@gmail.com}
+}
+\date{\today}
+
+%==============================================================================
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\begin{center}
+\fbox{\begin{minipage}{0.86\textwidth}\centering\small
+\textit{Document bilingue --- la version fran\c{c}aise est pr\'esent\'ee en premier
+(\textbf{Partie I}), suivie de la traduction anglaise int\'egrale (\textbf{Partie II}).}\\[2pt]
+\textit{Bilingual document --- the French version is presented first
+(\textbf{Part~I}), immediately followed by the complete English translation
+(\textbf{Part~II}).}
+\end{minipage}}
+\end{center}
+
+\vspace{6pt}
+\tableofcontents
+\newpage
+
+%##############################################################################
+%  PART I -- FRENCH VERSION
+%##############################################################################
+\part{Version Fran\c{c}aise}
+\selectlanguage{french}
+
+\begin{abstract}
+\noindent
+\textbf{ATB ATM Locator} est une application mobile bancaire con\c{c}ue pour
+permettre aux clients de l'Arab Tunisian Bank de localiser en temps r\'eel les
+distributeurs automatiques de billets (DAB) et les agences les plus proches,
+d'obtenir un itin\'eraire fiable et de consulter ces informations m\^eme en
+l'absence de connexion r\'eseau. Cet article pr\'esente, du point de vue d'un
+ing\'enieur logiciel mobile senior, les \emph{choix techniques} structurants du
+projet ainsi que leur justification. Les principaux d\'efis d'ing\'enierie
+trait\'es sont~: la r\'ecup\'eration et le tri par proximit\'e de donn\'ees
+g\'eospatiales h\'et\'erog\`enes, le rendu cartographique performant, une
+strat\'egie \emph{offline-first} fond\'ee sur la mise en cache de tuiles, la
+gestion fine de la consommation de batterie li\'ee au GPS, et la s\'ecurisation
+de la couche r\'eseau. La pile technologique retenue repose sur
+\textbf{Flutter/Dart} pour l'interface multiplateforme, \textbf{flutter\_map}
+adoss\'e \`a \textbf{OpenStreetMap} pour la cartographie, l'\textbf{API Overpass}
+comme source de donn\'ees DAB, le paquet \textbf{geolocator} pour la
+g\'eolocalisation, et un cache hors-ligne au format \textbf{MBTiles}
+(\textbf{SQLite}). Nous montrons qu'une architecture en couches, coupl\'ee \`a
+des m\'ecanismes syst\'ematiques de d\'egradation gracieuse, permet d'atteindre
+une robustesse de niveau production tout en restant simple \`a maintenir et
+\'economiquement viable (absence de cl\'es propri\'etaires payantes).
+\end{abstract}
+
+\section{Introduction}
+\subsection{Contexte du projet}
+La densit\'e du r\'eseau de DAB en Tunisie et l'h\'et\'erog\'en\'eit\'e des
+horaires de service rendent fr\'equente une question simple mais r\'ecurrente
+pour l'usager~: \emph{o\`u se trouve le distributeur ouvert le plus proche, et
+propose-t-il le service de d\'ep\^ot ou de retrait sans carte~?} \textbf{ATB ATM
+Locator} r\'epond \`a ce besoin en combinant une carte interactive, un tri par
+distance g\'eod\'esique et un syst\`eme de filtres compos\'es.
+
+\subsection{Probl\'ematique}
+La construction d'un outil bancaire fond\'e sur la g\'eolocalisation soul\`eve
+plusieurs probl\`emes d'ing\'enierie non triviaux~:
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Suivi en temps r\'eel}~: agr\'eger des donn\'ees de DAB
+  potentiellement incompl\`etes et les ordonner selon la position courante de
+  l'utilisateur.
+  \item \textbf{Disponibilit\'e hors-ligne}~: garantir l'usage de la carte dans
+  des zones \`a faible couverture r\'eseau.
+  \item \textbf{Routage fiable}~: d\'el\'eguer la navigation \`a un fournisseur
+  d'itin\'eraires \'eprouv\'e sans capturer de donn\'ees sensibles.
+  \item \textbf{Sobri\'et\'e \'energ\'etique}~: limiter l'impact du GPS sur
+  l'autonomie de l'appareil.
+  \item \textbf{S\'ecurit\'e}~: prot\'eger les secrets applicatifs et minimiser
+  la surface d'attaque en l'absence de backend propri\'etaire.
+\end{itemize}
+
+\subsection{Objectifs de l'architecture technique}
+L'architecture vise quatre propri\'et\'es cardinales~: la
+\textbf{portabilit\'e} (un code source unique pour Android et iOS), la
+\textbf{r\'esilience} (aucune fonctionnalit\'e critique ne d\'epend d'un unique
+point de d\'efaillance), la \textbf{testabilit\'e} (logique m\'etier isol\'ee de
+l'interface) et la \textbf{soutenabilit\'e \'economique} (recours exclusif \`a
+des services gratuits ou \`a offre gratuite).
+
+\section{\'Etat de l'art}
+\subsection{Paradigmes de d\'eveloppement mobile}
+Trois grandes familles de paradigmes coexistent pour une application fortement
+cartographique et orient\'ee localisation~: le d\'eveloppement \textbf{natif}
+(Kotlin/Swift), les approches \textbf{multiplateformes \`a moteur de rendu
+propre} (Flutter), et les approches \textbf{multiplateformes \`a pont JavaScript}
+(React Native). Le natif offre l'acc\`es le plus direct aux capteurs et la
+meilleure int\'egration syst\`eme, au prix d'un double effort de
+d\'eveloppement. React Native mutualise la logique mais d\'epend d'un pont vers
+les composants natifs, ce qui peut p\'enaliser les animations cartographiques
+intensives. Flutter compile en code natif ARM et dessine son interface via le
+moteur \textbf{Skia/Impeller}, offrant un contr\^ole pixel-pr\`es du rendu,
+particuli\`erement avantageux pour des surcouches de marqueurs personnalis\'es.
+
+\subsection{Solutions cartographiques}
+Le march\'e propose principalement le \textbf{SDK Google Maps}, \textbf{Mapbox},
+et l'\'ecosyst\`eme \textbf{OpenStreetMap} (OSM) rendu via des biblioth\`eques
+de type \emph{Leaflet} (dont \code{flutter\_map} est l'analogue Flutter). Le
+crit\`ere discriminant pour ce projet est le co\^ut marginal nul et l'absence de
+cl\'e propri\'etaire d'OSM, conjugu\'es \`a la disponibilit\'e d'une source de
+donnees DAB ouverte (Overpass) align\'ee sur le m\^eme r\'ef\'erentiel
+g\'eographique. Le Tableau~\ref{tab:maps-fr} synth\'etise cette comparaison.
+
+\section{Choix Techniques et Architecture}
+\subsection{S\'election du framework et du langage}
+\textbf{Flutter 3.44} (langage \textbf{Dart 3.12}) a \'et\'e retenu. Les
+justifications principales sont~:
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Code source unique} compil\'e pour Android et iOS, divisant par
+  deux l'effort de maintenance.
+  \item \textbf{Rendu Skia} ind\'ependant des widgets natifs, garantissant un
+  comportement identique des couches de marqueurs sur toutes les plateformes.
+  \item \textbf{Hot reload} acc\'el\'erant l'it\'eration sur l'interface
+  cartographique.
+  \item \textbf{\'Ecosyst\`eme de paquets} mature pour la g\'eolocalisation, la
+  base SQLite et le t\'el\'echargement HTTP.
+\end{itemize}
+Le Tableau~\ref{tab:framework-fr} compare les options \'evalu\'ees.
+
+\begin{table}[ht]
+\centering
+\caption{Comparaison des paradigmes de d\'eveloppement \'evalu\'es.}
+\label{tab:framework-fr}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{5.4cm} >{\raggedright\arraybackslash}p{5.4cm}}
+\toprule
+\textbf{Technologie} & \textbf{Avantages} & \textbf{Inconv\'enients} \\
+\midrule
+\textbf{Flutter\,/\,Dart} \textit{(retenu)} &
+Code unique multiplateforme~; rendu Skia constant~; excellentes performances de
+surcouche cartographique~; hot reload &
+Taille du binaire plus \'elev\'ee~; \'ecosyst\`eme bancaire natif moins fourni \\
+\midrule
+\textbf{React Native} &
+Large communaut\'e~; partage de logique JS~; nombreux modules &
+Pont JS p\'enalisant le rendu intensif~; fragmentation des biblioth\`eques de
+cartes \\
+\midrule
+\textbf{Natif (Kotlin / Swift)} &
+Acc\`es capteur optimal~; int\'egration syst\`eme maximale &
+Double base de code~; co\^ut et d\'elai de d\'eveloppement doubl\'es \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Architecture de gestion de l'\'etat}
+Le projet adopte une approche d\'elib\'er\'ement \textbf{l\'eg\`ere}~: un \'etat
+local r\'eactif (\code{StatefulWidget} + \code{setState}) au niveau des \'ecrans,
+adoss\'e \`a une \textbf{couche de services sans \'etat} (classes \`a m\'ethodes
+statiques~: \code{ATMService}, \code{ChatService}, \code{LocationService},
+\code{OfflineMapService}). Ce choix se justifie par la \textbf{cardinalit\'e
+mod\'er\'ee de l'\'etat partag\'e}~: chaque \'ecran poss\`ede un \'etat
+relativement autonome, et la navigation par onglets repose sur un
+\code{IndexedStack} qui pr\'eserve l'\'etat sans reconstruction.
+
+\subsubsection{Alternatives consid\'er\'ees}
+Les solutions \code{Provider}, \code{Riverpod} et \code{BLoC} ont \'et\'e
+\'evalu\'ees. \code{BLoC} impose une c\'er\'emonie (\'ev\'enements/\'etats)
+disproportionn\'ee pour la taille actuelle du domaine. \code{Riverpod}
+constitue la \textbf{trajectoire de migration recommand\'ee} d\`es lors que
+l'application int\'egrera un v\'eritable backend transactionnel et un \'etat
+d'authentification global. \`A ce stade, \code{setState} maximise la lisibilit\'e
+et minimise la dette conceptuelle.
+
+\subsection{G\'eolocalisation, SDK cartographiques et strat\'egie offline-first}
+\subsubsection{G\'eolocalisation}
+Le paquet \code{geolocator} encapsule la demande de permission, la v\'erification
+de l'activation du service et l'acquisition de la position avec
+\code{LocationAccuracy.high}. La distance utilisateur--DAB est calcul\'ee via la
+formule g\'eod\'esique fournie par \code{Geolocator.distanceBetween}, puis sert
+de clef de tri croissant.
+
+\subsubsection{Cartographie}
+Le rendu s'appuie sur \code{flutter\_map} (\'equivalent Flutter de Leaflet) et
+les tuiles raster d'\textbf{OpenStreetMap}. Les marqueurs sont color\'es selon
+l'\'etat du DAB~: bordeaux (ouvert), gris (ferm\'e), contour ambre
+(s\'electionn\'e). La navigation routi\`ere est \textbf{d\'el\'egu\'ee} \`a
+Google Maps par un lien profond (\code{url\_launcher}), \'evitant ainsi toute
+d\'ependance \`a un SDK de routage propri\'etaire.
+
+\subsubsection{Donn\'ees DAB et d\'egradation gracieuse}
+Les distributeurs sont r\'ecup\'er\'es aupr\`es de l'\textbf{API Overpass} par
+une requ\^ete born\'ee (\code{amenity=atm}, rayon param\'etrable, d\'elai
+d'expiration de 15~s). En cas d'\'echec (refus GPS, latence, indisponibilit\'e),
+l'application bascule sur un \textbf{jeu de 20 DAB tunisiens pr\'echarg\'es}~: la
+carte n'est \emph{jamais} vide.
+
+\subsubsection{Strat\'egie offline-first}
+Une r\'egion (p.~ex. \textit{Grand Tunis}) peut \^etre t\'el\'echarg\'ee sous
+forme de fichier \textbf{MBTiles}, c'est-\`a-dire une base \textbf{SQLite}
+contenant les tuiles PNG. Les coordonn\'ees de tuiles sont calcul\'ees par la
+projection \emph{slippy map} et stock\'ees en ordre \textbf{TMS}. Un fournisseur
+sur-mesure, \code{MBTilesTileProvider}, fait le pont entre SQLite et
+\code{flutter\_map}, rendant la carte exploitable \textbf{sans aucune
+connexion}.
+
+\begin{table}[ht]
+\centering
+\caption{Comparaison des solutions cartographiques.}
+\label{tab:maps-fr}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}p{5.2cm} >{\raggedright\arraybackslash}p{5.2cm}}
+\toprule
+\textbf{Solution} & \textbf{Avantages} & \textbf{Inconv\'enients} \\
+\midrule
+\textbf{flutter\_map + OSM} \textit{(retenu)} &
+Gratuit, sans cl\'e API~; contr\^ole total du rendu~; coh\'erence avec les
+donn\'ees Overpass~; cache MBTiles ais\'e &
+Quotas d'usage \'equitable OSM~; pas de trafic temps r\'eel natif \\
+\midrule
+\textbf{SDK Google Maps} &
+Donn\'ees riches~; trafic et POI~; rendu optimis\'e &
+Cl\'e payante au-del\`a d'un seuil~; conditions restrictives~; cache hors-ligne
+limit\'e \\
+\midrule
+\textbf{Mapbox} &
+Rendu vectoriel \'el\'egant~; offline officiel &
+Mod\`ele tarifaire \`a l'usage~; d\'ependance \`a un fournisseur \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Couche r\'eseau, communication API et s\'ecurit\'e}
+La couche r\'eseau combine \code{http} (appels REST simples vers Overpass et
+Groq) et \code{Dio} (t\'el\'echargement de tuiles en flux d'octets avec
+\code{CancelToken}). Toutes les communications transitent en \textbf{HTTPS/TLS}.
+Les requ\^etes sont prot\'eg\'ees par des d\'elais d'expiration explicites et
+encapsul\'ees dans des blocs de capture d'erreur qui d\'eclenchent la
+d\'egradation gracieuse.
+
+\subsubsection{Gestion des secrets}
+La cl\'e d'API est isol\'ee dans un fichier \code{secrets.dart} \textbf{exclu du
+suivi de version} (\code{.gitignore}), accompagn\'e d'un mod\`ele
+\code{secrets.example.dart} versionn\'e. Pour un d\'eploiement de production,
+nous recommandons de \textbf{d\'eporter l'appel sensible derri\`ere un proxy
+backend} afin de ne jamais embarquer de secret dans le binaire distribu\'e, et
+d'injecter la configuration via \code{--dart-define} au moment de la
+compilation.
+
+\subsubsection{Principe de moindre privil\`ege}
+L'application ne demande que les permissions \code{INTERNET} et de localisation,
+ne stocke aucune donn\'ee personnelle identifiable, et conserve la base de
+tuiles dans le r\'epertoire priv\'e de l'application, supprimant le besoin de
+permissions de stockage externe.
+
+\begin{figure}[ht]
+\centering
+\fbox{\begin{minipage}{0.86\textwidth}\centering\vspace{6pt}
+\textbf{[ DIAGRAMME D'ARCHITECTURE --- ESPACE R\'ESERV\'E ]}\\[10pt]
+\fbox{Couche Pr\'esentation : \'Ecrans \& Widgets (Accueil, Carte, Assistance\dots)}\\[4pt]
+$\downarrow$\\[4pt]
+\fbox{Couche \'Etat : \code{setState} + \code{IndexedStack}}\\[4pt]
+$\downarrow$\\[4pt]
+\fbox{Couche Services : ATM \textbullet{} Chat \textbullet{} Location \textbullet{} OfflineMap}\\[4pt]
+$\downarrow$\\[4pt]
+\fbox{Sources de donn\'ees : API Overpass \textbullet{} API Groq \textbullet{} MBTiles/SQLite \textbullet{} GPS}
+\vspace{6pt}
+\end{minipage}}
+\caption{Architecture en couches de \textit{ATB ATM Locator} (sch\'ema de principe).}
+\label{fig:arch-fr}
+\end{figure}
+
+\section{D\'efis d'impl\'ementation}
+\subsection{Consommation de batterie li\'ee au GPS}
+L'acquisition continue de position \'epuise rapidement la batterie. La strat\'egie
+retenue privil\'egie une \textbf{acquisition ponctuelle} (\code{getCurrentPosition})
+plut\^ot qu'un flux permanent, l'\'etat statique des DAB ne justifiant pas un
+suivi temps r\'eel. Ce compromis r\'eduit l'empreinte \'energ\'etique tout en
+conservant une pr\'ecision \'elev\'ee au moment du calcul des distances.
+
+\subsection{Pr\'ecision et lisibilit\'e des marqueurs}
+La superposition de nombreux marqueurs sur une zone dense pose un probl\`eme de
+lisibilit\'e. La conception actuelle distingue visuellement la s\'election
+(agrandissement et contour ambre) et conserve un nombre de marqueurs ma\^itris\'e
+gr\^ace au filtrage compos\'e. L'\textbf{agr\'egation (clustering)} de marqueurs
+constitue l'\'evolution naturelle pour les densit\'es \'elev\'ees.
+
+\subsection{Conformit\'e \`a la politique d'usage d'OSM}
+Le t\'el\'echargement massif de tuiles doit respecter la politique d'usage
+\'equitable d'OSM. L'impl\'ementation applique une \textbf{temporisation de
+50\,ms} entre tuiles et un \textbf{User-Agent} identifiant explicitement
+l'application, pr\'evenant tout blocage c\^ot\'e serveur.
+
+\subsection{T\'el\'echargements reprenables}
+Une coupure r\'eseau ne doit pas invalider un t\'el\'echargement partiel. Chaque
+tuile d\'ej\`a pr\'esente en base est d\'etect\'ee et ignor\'ee~: le
+t\'el\'echargement reprend exactement o\`u il s'\'etait interrompu, gr\^ace \`a
+un point de contr\^ole au niveau de la tuile (\emph{checkpointing}).
+
+\subsection{Conversion de coordonn\'ees et cycle de vie asynchrone}
+La conversion entre l'ordonn\'ee XYZ et l'ordonn\'ee \textbf{TMS} (inversion de
+l'axe~$y$) est centralis\'ee pour \'eviter les erreurs d'alignement. Par
+ailleurs, les rappels asynchrones v\'erifient syst\'ematiquement l'\'etat
+\code{mounted} du widget, et un drapeau de d\'emarrage unique \'evite le
+re-d\'eclenchement d'un t\'el\'echargement \`a chaque reconstruction d'un
+\code{StatefulBuilder}.
+
+\section{Performances et CI/CD}
+\subsection{Optimisation du rendu et gestion m\'emoire}
+Plusieurs leviers sont mobilis\'es~: l'usage d'\code{IndexedStack} \'evite la
+reconstruction des onglets~; l'emploi de constructeurs \code{const} r\'eduit les
+reconstructions superflues~; la base de tuiles est ouverte en \textbf{lecture
+seule} lors de la consultation et \textbf{ferm\'ee} explicitement dans
+\code{dispose}~; les contr\^oleurs (carte, d\'efilement, animation) sont
+lib\'er\'es pour pr\'evenir les fuites m\'emoire. Le stockage des tuiles sous
+forme de BLOB dans SQLite \'evite la fragmentation du syst\`eme de fichiers.
+
+\subsection{Cha\^ine d'int\'egration et de d\'eploiement continu}
+La cha\^ine de livraison recommand\'ee s'articule autour de \textbf{GitHub
+Actions}~:
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Analyse statique}~: \code{flutter analyze} avec
+  \code{flutter\_lints} \`a chaque \emph{pull request}.
+  \item \textbf{Tests}~: ex\'ecution de \code{flutter test} (widgets et logique
+  des services).
+  \item \textbf{Construction}~: \code{flutter build apk\,/\,appbundle} et
+  \code{ipa}, secrets inject\'es via \code{--dart-define}.
+  \item \textbf{Signature et publication}~: automatisation via \textbf{fastlane}
+  vers les canaux de test, puis d\'eploiement progressif (\emph{staged
+  rollout}).
+\end{itemize}
+
+\section{Conclusion}
+L'architecture de \textbf{ATB ATM Locator} d\'emontre qu'une s\'eparation nette
+en couches, combin\'ee \`a une d\'egradation gracieuse syst\'ematique, suffit \`a
+atteindre une robustesse de niveau production sans recourir \`a des services
+propri\'etaires co\^uteux. La \textbf{soutenabilit\'e} repose sur l'usage
+exclusif de briques ouvertes (OSM, Overpass) et la \textbf{p\'erennit\'e} sur la
+modularit\'e de la couche de services, qui permettra de substituer un backend
+transactionnel, d'introduire \code{Riverpod} pour un \'etat global,
+d'ajouter l'authentification biom\'etrique et les notifications \emph{push}.
+La trajectoire d'\'evolution est ainsi clairement balis\'ee, ce qui qualifie
+l'architecture de \emph{future-proof} \`a l'\'echelle d'un produit bancaire
+grand public.
+
+%##############################################################################
+%  PART II -- ENGLISH VERSION
+%##############################################################################
+\newpage
+\part{English Version}
+\selectlanguage{english}
+
+\begin{abstract}
+\noindent
+\textbf{ATB ATM Locator} is a mobile banking application designed to let Arab
+Tunisian Bank customers locate, in real time, the nearest Automated Teller
+Machines (ATMs) and branches, obtain reliable routing, and consult this
+information even without network connectivity. From the standpoint of a senior
+mobile software engineer, this paper presents and justifies the project's
+defining \emph{technical choices}. The core engineering challenges addressed
+are: retrieving and proximity-sorting heterogeneous geospatial data, performant
+map rendering, an \emph{offline-first} strategy based on tile caching,
+fine-grained control of GPS-induced battery drain, and securing the network
+layer. The selected stack relies on \textbf{Flutter/Dart} for the
+cross-platform interface, \textbf{flutter\_map} backed by \textbf{OpenStreetMap}
+for mapping, the \textbf{Overpass API} as the ATM data source, the
+\textbf{geolocator} package for location, and an offline cache in the
+\textbf{MBTiles} (\textbf{SQLite}) format. We show that a layered architecture,
+coupled with systematic graceful-degradation mechanisms, achieves
+production-grade robustness while remaining simple to maintain and economically
+sustainable (no paid proprietary keys).
+\end{abstract}
+
+\section{Introduction}
+\subsection{Project context}
+The density of the Tunisian ATM network and the heterogeneity of service hours
+make a simple but recurring question common for users: \emph{where is the
+nearest open ATM, and does it offer the deposit or cardless-withdrawal service?}
+\textbf{ATB ATM Locator} answers this need by combining an interactive map,
+geodesic distance sorting, and a composable filter system.
+
+\subsection{Problem statement}
+Building a geolocation-based banking tool raises several non-trivial engineering
+problems:
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Real-time tracking}: aggregating potentially incomplete ATM data
+  and ordering it by the user's current position.
+  \item \textbf{Offline availability}: guaranteeing map usage in areas with poor
+  network coverage.
+  \item \textbf{Reliable routing}: delegating navigation to a proven routing
+  provider without capturing sensitive data.
+  \item \textbf{Energy frugality}: limiting the impact of GPS on device battery
+  life.
+  \item \textbf{Security}: protecting application secrets and minimizing the
+  attack surface in the absence of a proprietary backend.
+\end{itemize}
+
+\subsection{Objectives of the technical architecture}
+The architecture targets four cardinal properties: \textbf{portability} (a single
+source base for Android and iOS), \textbf{resilience} (no critical feature
+depends on a single point of failure), \textbf{testability} (business logic
+isolated from the interface), and \textbf{economic sustainability} (exclusive
+reliance on free or free-tier services).
+
+\section{State of the Art}
+\subsection{Mobile development paradigms}
+Three broad paradigm families coexist for a map-heavy, location-oriented
+application: \textbf{native} development (Kotlin/Swift), \textbf{cross-platform
+with a dedicated rendering engine} (Flutter), and \textbf{cross-platform with a
+JavaScript bridge} (React Native). Native offers the most direct sensor access
+and the best system integration, at the cost of duplicated development effort.
+React Native shares logic but depends on a bridge to native components, which can
+penalize intensive map animations. Flutter compiles to native ARM code and
+paints its interface through the \textbf{Skia/Impeller} engine, providing
+pixel-accurate rendering control that is particularly advantageous for custom
+marker overlays.
+
+\subsection{Mapping solutions}
+The market mainly offers the \textbf{Google Maps SDK}, \textbf{Mapbox}, and the
+\textbf{OpenStreetMap} (OSM) ecosystem rendered through \emph{Leaflet}-style
+libraries (of which \code{flutter\_map} is the Flutter analogue). The
+discriminating criterion for this project is OSM's zero marginal cost and the
+absence of a proprietary key, combined with the availability of an open ATM data
+source (Overpass) aligned with the same geographic reference. Table~%
+\ref{tab:maps-en} summarizes this comparison.
+
+\section{Technical Choices and Architecture}
+\subsection{Framework and language selection}
+\textbf{Flutter 3.44} (\textbf{Dart 3.12} language) was selected. The main
+justifications are:
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Single source base} compiled for Android and iOS, halving
+  maintenance effort.
+  \item \textbf{Skia rendering} independent of native widgets, guaranteeing
+  identical behaviour of marker layers across platforms.
+  \item \textbf{Hot reload} accelerating iteration on the map interface.
+  \item \textbf{Mature package ecosystem} for geolocation, the SQLite database,
+  and HTTP downloading.
+\end{itemize}
+Table~\ref{tab:framework-en} compares the evaluated options.
+
+\begin{table}[ht]
+\centering
+\caption{Comparison of the evaluated development paradigms.}
+\label{tab:framework-en}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{5.4cm} >{\raggedright\arraybackslash}p{5.4cm}}
+\toprule
+\textbf{Technology} & \textbf{Pros} & \textbf{Cons} \\
+\midrule
+\textbf{Flutter\,/\,Dart} \textit{(selected)} &
+Single cross-platform codebase; consistent Skia rendering; excellent map-overlay
+performance; hot reload &
+Larger binary size; less mature native banking ecosystem \\
+\midrule
+\textbf{React Native} &
+Large community; shared JS logic; many modules &
+JS bridge penalizes intensive rendering; fragmented map libraries \\
+\midrule
+\textbf{Native (Kotlin / Swift)} &
+Optimal sensor access; maximal system integration &
+Dual codebase; doubled development cost and time \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{State management architecture}
+The project adopts a deliberately \textbf{lightweight} approach: reactive local
+state (\code{StatefulWidget} + \code{setState}) at the screen level, backed by a
+\textbf{stateless service layer} (classes with static methods:
+\code{ATMService}, \code{ChatService}, \code{LocationService},
+\code{OfflineMapService}). This choice is justified by the \textbf{moderate
+cardinality of shared state}: each screen owns a relatively autonomous state, and
+tab navigation relies on an \code{IndexedStack} that preserves state without
+rebuilding.
+
+\subsubsection{Considered alternatives}
+The \code{Provider}, \code{Riverpod}, and \code{BLoC} solutions were evaluated.
+\code{BLoC} imposes an event/state ceremony disproportionate to the current
+domain size. \code{Riverpod} is the \textbf{recommended migration path} once the
+application integrates a genuine transactional backend and a global
+authentication state. At this stage, \code{setState} maximizes readability and
+minimizes conceptual debt.
+
+\subsection{Geolocation, map SDKs, and offline-first strategy}
+\subsubsection{Geolocation}
+The \code{geolocator} package encapsulates permission requests, service-enabled
+checks, and position acquisition with \code{LocationAccuracy.high}. The
+user--ATM distance is computed via the geodesic helper
+\code{Geolocator.distanceBetween} and then serves as the ascending sort key.
+
+\subsubsection{Mapping}
+Rendering relies on \code{flutter\_map} (the Flutter equivalent of Leaflet) and
+\textbf{OpenStreetMap} raster tiles. Markers are colour-coded by ATM state:
+crimson (open), grey (closed), amber outline (selected). Road navigation is
+\textbf{delegated} to Google Maps through a deep link (\code{url\_launcher}),
+thereby avoiding any dependency on a proprietary routing SDK.
+
+\subsubsection{ATM data and graceful degradation}
+ATMs are fetched from the \textbf{Overpass API} via a bounded query
+(\code{amenity=atm}, configurable radius, 15\,s timeout). On failure (GPS
+denial, latency, unavailability), the application falls back to a
+\textbf{preloaded set of 20 Tunisian ATMs}: the map is \emph{never} empty.
+
+\subsubsection{Offline-first strategy}
+A region (e.g.\ \textit{Greater Tunis}) can be downloaded as an \textbf{MBTiles}
+file, i.e.\ a \textbf{SQLite} database containing PNG tiles. Tile coordinates are
+computed by the \emph{slippy map} projection and stored in \textbf{TMS} order. A
+custom provider, \code{MBTilesTileProvider}, bridges SQLite and
+\code{flutter\_map}, making the map usable \textbf{without any connection}.
+
+\begin{table}[ht]
+\centering
+\caption{Comparison of mapping solutions.}
+\label{tab:maps-en}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}p{5.2cm} >{\raggedright\arraybackslash}p{5.2cm}}
+\toprule
+\textbf{Solution} & \textbf{Pros} & \textbf{Cons} \\
+\midrule
+\textbf{flutter\_map + OSM} \textit{(selected)} &
+Free, no API key; full rendering control; consistency with Overpass data; easy
+MBTiles caching &
+OSM fair-use quotas; no native real-time traffic \\
+\midrule
+\textbf{Google Maps SDK} &
+Rich data; traffic and POIs; optimized rendering &
+Paid key beyond a threshold; restrictive terms; limited offline caching \\
+\midrule
+\textbf{Mapbox} &
+Elegant vector rendering; official offline support &
+Usage-based pricing; vendor lock-in \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Network layer, API communication, and security}
+The network layer combines \code{http} (simple REST calls to Overpass and Groq)
+and \code{Dio} (byte-stream tile downloading with \code{CancelToken}). All
+communication travels over \textbf{HTTPS/TLS}. Requests are protected by
+explicit timeouts and wrapped in error-capturing blocks that trigger graceful
+degradation.
+
+\subsubsection{Secrets management}
+The API key is isolated in a \code{secrets.dart} file \textbf{excluded from
+version control} (\code{.gitignore}), accompanied by a versioned
+\code{secrets.example.dart} template. For a production deployment, we recommend
+\textbf{moving the sensitive call behind a backend proxy} so that no secret is
+ever embedded in the distributed binary, and injecting configuration via
+\code{--dart-define} at build time.
+
+\subsubsection{Principle of least privilege}
+The application requests only the \code{INTERNET} and location permissions,
+stores no personally identifiable information, and keeps the tile database in the
+application's private directory, removing the need for external-storage
+permissions.
+
+\begin{figure}[ht]
+\centering
+\fbox{\begin{minipage}{0.86\textwidth}\centering\vspace{6pt}
+\textbf{[ ARCHITECTURE DIAGRAM --- PLACEHOLDER ]}\\[10pt]
+\fbox{Presentation Layer: Screens \& Widgets (Home, Map, Assistant\dots)}\\[4pt]
+$\downarrow$\\[4pt]
+\fbox{State Layer: \code{setState} + \code{IndexedStack}}\\[4pt]
+$\downarrow$\\[4pt]
+\fbox{Service Layer: ATM \textbullet{} Chat \textbullet{} Location \textbullet{} OfflineMap}\\[4pt]
+$\downarrow$\\[4pt]
+\fbox{Data Sources: Overpass API \textbullet{} Groq API \textbullet{} MBTiles/SQLite \textbullet{} GPS}
+\vspace{6pt}
+\end{minipage}}
+\caption{Layered architecture of \textit{ATB ATM Locator} (schematic).}
+\label{fig:arch-en}
+\end{figure}
+
+\section{Implementation Challenges}
+\subsection{GPS-induced battery drain}
+Continuous position acquisition rapidly depletes the battery. The chosen strategy
+favours a \textbf{one-shot acquisition} (\code{getCurrentPosition}) over a
+permanent stream, since the static nature of ATM data does not warrant real-time
+tracking. This trade-off reduces the energy footprint while preserving high
+accuracy at the moment distances are computed.
+
+\subsection{Marker precision and legibility}
+Overlaying many markers over a dense area raises a legibility problem. The
+current design visually distinguishes selection (enlargement and amber outline)
+and keeps the marker count controlled through composable filtering. Marker
+\textbf{clustering} is the natural evolution for higher densities.
+
+\subsection{Compliance with the OSM usage policy}
+Bulk tile downloading must respect the OSM fair-use policy. The implementation
+applies a \textbf{50\,ms throttle} between tiles and a \textbf{User-Agent} that
+explicitly identifies the application, preventing any server-side blocking.
+
+\subsection{Resumable downloads}
+A network drop must not invalidate a partial download. Each tile already present
+in the database is detected and skipped: the download resumes exactly where it
+was interrupted, thanks to tile-level \emph{checkpointing}.
+
+\subsection{Coordinate conversion and asynchronous lifecycle}
+The conversion between the XYZ ordinate and the \textbf{TMS} ordinate ($y$-axis
+inversion) is centralized to avoid alignment errors. Furthermore, asynchronous
+callbacks systematically check the widget's \code{mounted} state, and a
+single-start flag prevents a download from being re-triggered on every
+\code{StatefulBuilder} rebuild.
+
+\section{Performance and CI/CD}
+\subsection{Rendering optimization and memory management}
+Several levers are used: \code{IndexedStack} avoids tab rebuilding; \code{const}
+constructors reduce superfluous rebuilds; the tile database is opened
+\textbf{read-only} for browsing and explicitly \textbf{closed} in \code{dispose};
+controllers (map, scroll, animation) are released to prevent memory leaks.
+Storing tiles as BLOBs in SQLite avoids file-system fragmentation.
+
+\subsection{Continuous integration and deployment pipeline}
+The recommended delivery pipeline is built around \textbf{GitHub Actions}:
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Static analysis}: \code{flutter analyze} with \code{flutter\_lints}
+  on every pull request.
+  \item \textbf{Testing}: running \code{flutter test} (widgets and service
+  logic).
+  \item \textbf{Building}: \code{flutter build apk\,/\,appbundle} and \code{ipa},
+  with secrets injected via \code{--dart-define}.
+  \item \textbf{Signing and publishing}: automation through \textbf{fastlane} to
+  test tracks, followed by a \emph{staged rollout}.
+\end{itemize}
+
+\section{Conclusion}
+The architecture of \textbf{ATB ATM Locator} demonstrates that a clean layered
+separation, combined with systematic graceful degradation, is sufficient to
+reach production-grade robustness without resorting to costly proprietary
+services. \textbf{Sustainability} rests on the exclusive use of open building
+blocks (OSM, Overpass), and \textbf{longevity} on the modularity of the service
+layer, which will allow substituting a transactional backend, introducing
+\code{Riverpod} for global state, and adding biometric authentication and
+\emph{push} notifications. The evolution path is thus clearly marked out, which
+qualifies the architecture as \emph{future-proof} at the scale of a
+consumer-facing banking product.
+
+\end{document}

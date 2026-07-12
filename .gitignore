@@ -1,6 +1,23 @@
 # API Keys — never commit secrets
 lib/config/secrets.dart
 
+# Local databases & offline map tiles (large binaries, user-generated)
+*.db
+*.sqlite
+*.sqlite3
+*.mbtiles
+
+# Python tooling artifacts (scripts/)
+__pycache__/
+.venv/
+venv/
+
+# Node tooling (if ever added)
+node_modules/
+
+# Files not part of this project
+ForumVerse_Flipbook.html
+
 # Miscellaneous
 *.class
 *.log

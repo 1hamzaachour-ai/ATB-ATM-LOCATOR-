@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ATB Mobile — Project Presentation</title>
+<style>
+  :root{
+    --crimson:#8B1832;
+    --crimson-light:#B22C4A;
+    --crimson-dark:#5C0F21;
+    --green:#2E7D32;
+    --bg:#0e0a0c;
+    --slide-bg:#fbf7f8;
+    --ink:#1A1A1A;
+    --muted:#6b6b6b;
+    --chip:#FFEEF1;
+    --line:#ecdfe3;
+    --code-bg:#241318;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 800px at 80% -10%, rgba(139,24,50,.45), transparent 60%),
+      radial-gradient(900px 700px at -10% 110%, rgba(178,44,74,.35), transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    overflow:hidden;
+  }
+
+  /* ===== Deck ===== */
+  .deck{height:100vh;width:100vw;position:relative}
+  .slide{
+    position:absolute;inset:0;
+    display:none;
+    padding:64px 88px;
+    background:var(--slide-bg);
+    margin:auto;
+    width:min(1180px,92vw);
+    height:min(720px,90vh);
+    top:0;bottom:0;left:0;right:0;
+    border-radius:24px;
+    box-shadow:0 40px 120px rgba(0,0,0,.55);
+    overflow:hidden;
+    animation:fade .45s ease;
+    flex-direction:column;
+  }
+  .slide.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(14px) scale(.99)}to{opacity:1;transform:none}}
+
+  /* accent bar */
+  .slide::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:10px;
+    background:linear-gradient(var(--crimson),var(--crimson-light));
+  }
+
+  h1{font-size:54px;line-height:1.05;letter-spacing:-1px;color:var(--crimson-dark);font-weight:800}
+  h2{font-size:34px;color:var(--crimson-dark);font-weight:800;letter-spacing:-.5px;margin-bottom:6px}
+  h3{font-size:19px;color:var(--crimson);font-weight:700;margin-bottom:6px}
+  p,li{font-size:18px;line-height:1.55;color:#322}
+  .muted{color:var(--muted)}
+  .kicker{
+    display:inline-block;font-size:13px;font-weight:800;letter-spacing:2px;
+    text-transform:uppercase;color:var(--crimson);
+    background:var(--chip);padding:6px 14px;border-radius:999px;margin-bottom:18px;
+    border:1px solid var(--line);
+  }
+  .lead{font-size:22px;color:#433;max-width:80ch;line-height:1.6}
+  .slide-body{flex:1;min-height:0;overflow:auto;padding-right:6px}
+  .slide-body::-webkit-scrollbar{width:8px}
+  .slide-body::-webkit-scrollbar-thumb{background:#d8c4ca;border-radius:8px}
+
+  /* ===== Layout helpers ===== */
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .row{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px 22px;box-shadow:0 6px 18px rgba(92,15,33,.06);
+  }
+  .card h3{display:flex;align-items:center;gap:10px}
+  .card .ic{font-size:24px}
+  .card p,.card li{font-size:15.5px;line-height:1.5}
+  .card ul{margin-left:18px;margin-top:6px}
+  .card ul li{margin-bottom:3px}
+
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--chip);color:var(--crimson-dark);
+    border:1px solid var(--line);border-radius:999px;
+    padding:8px 16px;font-weight:700;font-size:14px;
+  }
+
+  table{width:100%;border-collapse:collapse;font-size:15.5px}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line)}
+  th{color:var(--crimson-dark);font-size:13px;text-transform:uppercase;letter-spacing:.5px}
+  tr:nth-child(even) td{background:#fff}
+  td b{color:var(--crimson-dark)}
+
+  code,pre{font-family:"SF Mono",ui-monospace,"Cascadia Code",Consolas,monospace}
+  pre{
+    background:var(--code-bg);color:#f4e9ec;border-radius:14px;
+    padding:18px 20px;font-size:14px;line-height:1.6;overflow:auto;
+    border:1px solid #3a2027;
+  }
+  pre .c{color:#ff9bb0}    /* keyword/crimson */
+  pre .g{color:#7fd28a}    /* green */
+  pre .m{color:#8aa0b4}    /* comment */
+  pre .y{color:#f0c674}
+
+  .flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .step{
+    background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:12px 16px;font-size:14.5px;font-weight:600;color:#322;box-shadow:0 4px 12px rgba(92,15,33,.05)
+  }
+  .arrow{color:var(--crimson);font-size:22px;font-weight:800}
+
+  .big-num{font-size:46px;font-weight:800;color:var(--crimson);line-height:1}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:22px;text-align:center}
+  .stat .lbl{font-size:14px;color:var(--muted);margin-top:8px;font-weight:600}
+
+  ul.clean{list-style:none}
+  ul.clean li{position:relative;padding-left:30px;margin-bottom:12px}
+  ul.clean li::before{content:"▸";position:absolute;left:6px;color:var(--crimson);font-weight:800}
+
+  .check li::before{content:"✓";color:var(--green);font-weight:800}
+  .todo li::before{content:"○";color:var(--muted)}
+
+  /* phone mock for the AI chat slide */
+  .chat{background:#f1edee;border-radius:16px;padding:14px;border:1px solid var(--line)}
+  .bubble{max-width:78%;padding:9px 13px;border-radius:14px;font-size:14px;margin-bottom:9px;line-height:1.45}
+  .bot{background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+  .usr{background:var(--crimson);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+
+  /* ===== Title slide ===== */
+  .title-slide{background:linear-gradient(135deg,var(--crimson),var(--crimson-dark));color:#fff;justify-content:center}
+  .title-slide::before{background:rgba(255,255,255,.25)}
+  .title-slide h1{color:#fff;font-size:66px}
+  .title-slide .logo{
+    width:96px;height:96px;border-radius:24px;background:#fff;color:var(--crimson);
+    display:grid;place-items:center;font-weight:800;font-size:30px;margin-bottom:26px;
+    box-shadow:0 16px 40px rgba(0,0,0,.3)
+  }
+  .title-slide .sub{font-size:23px;color:rgba(255,255,255,.9);margin-top:14px;max-width:70ch}
+  .title-slide .badges{margin-top:30px;display:flex;gap:10px;flex-wrap:wrap}
+  .title-slide .badge{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+    padding:8px 15px;border-radius:999px;font-size:14px;font-weight:700;backdrop-filter:blur(4px)}
+  .title-slide .by{margin-top:36px;font-size:16px;color:rgba(255,255,255,.85)}
+
+  /* ===== Chrome / controls ===== */
+  .chrome{position:fixed;bottom:18px;left:0;right:0;display:flex;justify-content:center;gap:14px;align-items:center;z-index:50}
+  .btn{
+    background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);
+    width:44px;height:44px;border-radius:999px;font-size:20px;cursor:pointer;
+    display:grid;place-items:center;transition:.15s;backdrop-filter:blur(6px)
+  }
+  .btn:hover{background:rgba(255,255,255,.25)}
+  .counter{color:#fff;font-weight:700;font-size:14px;letter-spacing:1px;min-width:64px;text-align:center}
+  .progress{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,var(--crimson-light),#ffd0db);z-index:60;transition:width .3s}
+  .hint{position:fixed;top:16px;right:20px;color:rgba(255,255,255,.5);font-size:12px;z-index:50}
+
+  .footer-tag{position:absolute;bottom:26px;right:40px;font-size:12px;color:#b9a3a9;font-weight:700;letter-spacing:1px}
+
+  @media print{
+    body{overflow:visible;background:#fff}
+    .deck{height:auto}
+    .slide{display:flex!important;position:relative;page-break-after:always;box-shadow:none;
+      width:100%;height:96vh;margin-bottom:0;border-radius:0;animation:none}
+    .chrome,.progress,.hint{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="hint">← → / Space to navigate · F fullscreen · P to print</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · TITLE -->
+  <section class="slide title-slide active">
+    <div class="logo">ATB</div>
+    <h1>ATB Mobile</h1>
+    <div class="sub">A full-featured mobile banking app for the <b>Arab Tunisian Bank</b> — live ATM map, an AI assistant that speaks Tunisian <em>Derja</em>, card management and fully offline maps.</div>
+    <div class="badges">
+      <span class="badge">Flutter 3.44 · Dart</span>
+      <span class="badge">Groq · LLaMA 3.1</span>
+      <span class="badge">OpenStreetMap</span>
+      <span class="badge">Android &amp; iOS</span>
+      <span class="badge">Offline-first</span>
+    </div>
+    <div class="by">Built by <b>Hamza Achour</b> · Made in Tunisia 🇹🇳</div>
+  </section>
+
+  <!-- 2 · WHAT IS IT -->
+  <section class="slide">
+    <span class="kicker">Overview</span>
+    <h2>What is ATB Mobile?</h2>
+    <div class="slide-body">
+      <p class="lead">A production-style banking application built from scratch in <b>Flutter</b>, so a single codebase runs on both Android and iOS. It is wrapped in the bank's official burgundy brand identity and works even with no internet connection.</p>
+      <div class="grid g3" style="margin-top:26px">
+        <div class="card"><h3>🎯 The goal</h3><p>Help ATB customers find the nearest ATM/agence, get instant answers about banking services, and manage their cards — all from one app.</p></div>
+        <div class="card"><h3>🧩 What makes it different</h3><p>Real ATM data from OpenStreetMap, an AI assistant fluent in Tunisian dialect, and downloadable offline maps.</p></div>
+        <div class="card"><h3>⚙️ How it's built</h3><p>Clean separation of <b>models</b>, <b>services</b> and <b>screens</b>. No backend required — it talks directly to public APIs.</p></div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 3 · PROBLEM / MOTIVATION -->
+  <section class="slide">
+    <span class="kicker">Motivation</span>
+    <h2>The problem it solves</h2>
+    <div class="slide-body">
+      <div class="grid g2" style="margin-top:10px">
+        <div class="card"><h3>😣 Before</h3>
+          <ul class="clean">
+            <li>"Where is the nearest ATM that's actually open?"</li>
+            <li>"Which one accepts deposits or cardless withdrawal?"</li>
+            <li>Banking questions answered only in French or Fus-ha Arabic, not how people really speak.</li>
+            <li>Maps useless when you have no data/signal.</li>
+          </ul>
+        </div>
+        <div class="card" style="border-color:var(--crimson)"><h3>✅ With ATB Mobile</h3>
+          <ul class="clean check">
+            <li>Live, distance-sorted ATM map with open/closed status.</li>
+            <li>One-tap filters: Open · Deposit · Cardless.</li>
+            <li>An AI assistant that replies in <b>Tunisian Derja</b>, French or English.</li>
+            <li>Download a whole city and use the map fully offline.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 4 · FEATURES OVERVIEW -->
+  <section class="slide">
+    <span class="kicker">Features</span>
+    <h2>Six pillars of the app</h2>
+    <div class="slide-body">
+      <div class="grid g3" style="margin-top:14px">
+        <div class="card"><h3><span class="ic">🗺️</span> Live ATM Map</h3><p>Real-time ATM locations, color-coded markers, GPS dot, smart filters &amp; navigation.</p></div>
+        <div class="card"><h3><span class="ic">🤖</span> AI Assistant</h3><p>Groq LLaMA replies in Tunisian Derja, French &amp; English with nearby-ATM context.</p></div>
+        <div class="card"><h3><span class="ic">💳</span> Card Management</h3><p>Card carousel, freeze controls, limits, transaction history, QR &amp; mobile pay.</p></div>
+        <div class="card"><h3><span class="ic">📱</span> Offline Maps</h3><p>Download city regions as MBTiles, resumable, works with zero connection.</p></div>
+        <div class="card"><h3><span class="ic">🔔</span> Messages &amp; Alerts</h3><p>Notifications grouped by date with Bank / Security / Contacts filters.</p></div>
+        <div class="card"><h3><span class="ic">👤</span> Profile &amp; Settings</h3><p>Account overview with security, notification and language settings.</p></div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 5 · NAVIGATION -->
+  <section class="slide">
+    <span class="kicker">App structure</span>
+    <h2>How you move through the app</h2>
+    <div class="slide-body">
+      <p class="lead">A bottom navigation bar with <b>5 tabs</b>, held in an <code>IndexedStack</code> so switching tabs is instant and never rebuilds a screen.</p>
+      <div class="row" style="margin-top:24px">
+        <span class="pill">🏠 Accueil (Home)</span>
+        <span class="arrow">·</span>
+        <span class="pill">💳 Cartes</span>
+        <span class="arrow">·</span>
+        <span class="pill">💬 Messages</span>
+        <span class="arrow">·</span>
+        <span class="pill">👤 Profil</span>
+        <span class="arrow">·</span>
+        <span class="pill">🤖 Assistance</span>
+      </div>
+      <div class="card" style="margin-top:26px">
+        <h3>The Map opens on demand</h3>
+        <p>The full-screen ATM map is reached from the <b>"DAB"</b> quick-action on the Home screen, keeping the main navigation clean while making the map one tap away.</p>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 6 · HOME SCREEN -->
+  <section class="slide">
+    <span class="kicker">Feature 1</span>
+    <h2>🏠 Home — your account at a glance</h2>
+    <div class="slide-body">
+      <div class="grid g2">
+        <div>
+          <ul class="clean">
+            <li>Gradient <code>SliverAppBar</code> header that greets the user (<i>"Bonjour, Sami!"</i>) and shows the masked account number.</li>
+            <li><b>Balance card</b> showing available balance (4 250,000 TND) with income vs. spending stats.</li>
+            <li><b>Quick actions:</b> Virement, Paiement, DAB, Recharge — the DAB tile launches the live map.</li>
+            <li><b>Recent transactions</b> list with credit/debit color coding (green for incoming).</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Why it matters</h3>
+          <p>This is the landing screen — it has to communicate trust and clarity instantly. It uses the brand gradient, generous spacing, and a familiar banking layout so users feel at home in the first second.</p>
+          <div class="row" style="margin-top:14px">
+            <span class="pill">Sliver scrolling</span>
+            <span class="pill">Brand gradient</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 7 · MAP -->
+  <section class="slide">
+    <span class="kicker">Feature 2 · the crown jewel</span>
+    <h2>🗺️ Live ATM Map</h2>
+    <div class="slide-body">
+      <div class="grid g2">
+        <div>
+          <ul class="clean">
+            <li>Built on <code>flutter_map</code> + free OpenStreetMap tiles — no map API key needed.</li>
+            <li>Pulls real ATMs from the <b>Overpass API</b> around the user (50 km radius), then sorts them by distance.</li>
+            <li><b>Color-coded markers:</b> 🔴 burgundy = open · ⚫ grey = closed · 🟡 amber ring = selected.</li>
+            <li>Animated blue GPS dot for the user's position.</li>
+            <li>Bottom card with <b>Itinéraire</b> (Google Maps deep link) &amp; <b>Details</b>.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Composable filters</h3>
+          <pre><span class="m">// three independent toggles + search</span>
+list = _atms;
+<span class="c">if</span> (_filterOpen)     list = list.where((a) =&gt; a.isOpen);
+<span class="c">if</span> (_filterDeposit)  list = list.where((a) =&gt; a.hasDeposit);
+<span class="c">if</span> (_filterCardless) list = list.where((a) =&gt; a.hasCardless);
+<span class="c">if</span> (_search != <span class="g">''</span>) list = list.where(matchesQuery);</pre>
+          <p class="muted" style="font-size:14px;margin-top:10px">Filters chain cleanly — each narrows the list further with no duplicated state.</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 8 · MAP DATA FLOW -->
+  <section class="slide">
+    <span class="kicker">How the map loads</span>
+    <h2>From "open map" to sorted ATMs</h2>
+    <div class="slide-body">
+      <div class="flow" style="margin:24px 0">
+        <span class="step">📍 Request GPS<br><span class="muted" style="font-weight:400">graceful permission handling</span></span>
+        <span class="arrow">→</span>
+        <span class="step">🌐 Query Overpass API<br><span class="muted" style="font-weight:400">15 s timeout</span></span>
+        <span class="arrow">→</span>
+        <span class="step">📏 Compute distances<br><span class="muted" style="font-weight:400">&amp; sort by proximity</span></span>
+        <span class="arrow">→</span>
+        <span class="step">🗺️ Animate to user<br><span class="muted" style="font-weight:400">zoom 13</span></span>
+      </div>
+      <div class="card" style="border-color:var(--crimson)">
+        <h3>🛟 Resilient by design — the fallback</h3>
+        <p>If GPS is denied or the Overpass API is slow/unreachable, the app instantly falls back to <b>20 hand-curated Tunisian ATMs</b> (ATB, STB, BNA, BIAT, Zitouna, UIB, Amen…). The map is <b>never empty</b>, even with no network.</p>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 9 · AI ASSISTANT -->
+  <section class="slide">
+    <span class="kicker">Feature 3</span>
+    <h2>🤖 AI Assistant — it speaks Tunisian</h2>
+    <div class="slide-body">
+      <div class="grid g2">
+        <div>
+          <ul class="clean">
+            <li>Powered by <b>Groq + LLaMA 3.1-8B</b> — very fast inference.</li>
+            <li>A trilingual persona: mirrors the user in <b>Derja</b>, French or English, even mid-sentence code-switching.</li>
+            <li>The last 10 messages + the top 5 nearby ATMs are injected into the prompt for personalized answers.</li>
+            <li>When a reply names an ATM, an interactive <b>ATM card</b> appears in the chat.</li>
+            <li>Animated typing dots; offline mock answers if no API key.</li>
+          </ul>
+        </div>
+        <div class="chat">
+          <div class="bubble usr">feen el DAB el akreb m3a service dépôt?</div>
+          <div class="bubble bot">Barra! <b>"Agence Tunis Marine"</b> 320m men 3andek, 3andha module dépôt. Maftouha 08h–18h. 📍 Tħeb l'itinéraire?</div>
+          <div class="bubble usr">w el commission?</div>
+          <div class="bubble bot">Retrait b carte ATB <b>bela frais</b>. Banques okhrin: 1 TND. ✅</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 10 · AI FLOW -->
+  <section class="slide">
+    <span class="kicker">How the assistant answers</span>
+    <h2>The AI request pipeline</h2>
+    <div class="slide-body">
+      <pre><span class="m">// chat_service.dart</span>
+messages = [
+  { role: <span class="g">'system'</span>,  content: trilingualPersona + nearbyATMs },  <span class="m">// context</span>
+  ...last10Messages,                                          <span class="m">// memory</span>
+  { role: <span class="g">'user'</span>,    content: userMessage },
+];
+
+POST <span class="y">https://api.groq.com/openai/v1/chat/completions</span>
+  model: <span class="g">'llama-3.1-8b-instant'</span>
+  max_tokens: <span class="c">512</span>   temperature: <span class="c">0.7</span>
+
+<span class="m">// graceful degradation: if no key / network fails →</span>
+<span class="m">// keyword-matched mock replies in Derja keep the demo alive</span></pre>
+      <div class="row" style="margin-top:18px">
+        <span class="pill">No fluff · max 4 sentences</span>
+        <span class="pill">Never replies in Fus-ha unless asked</span>
+        <span class="pill">Falls back to 71 110 500 if unsure</span>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 11 · OFFLINE MAPS -->
+  <section class="slide">
+    <span class="kicker">Feature 4 · the hard part</span>
+    <h2>📱 Offline maps with MBTiles</h2>
+    <div class="slide-body">
+      <div class="grid g2">
+        <div>
+          <ul class="clean">
+            <li>Downloads every map tile for a region and stores them in a single <b>SQLite (.mbtiles)</b> file.</li>
+            <li><b>Resumable:</b> already-downloaded tiles are skipped, so an interrupted download just continues.</li>
+            <li>Respects OSM rate limits (50 ms between tiles) and a polite custom User-Agent.</li>
+            <li>Live progress bar with % and tile count; cancellable mid-download.</li>
+            <li>A custom <code>MBTilesTileProvider</code> bridges SQLite → flutter_map so the map renders with zero internet.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Pre-configured regions</h3>
+          <table>
+            <tr><th>Region</th><th>Zoom</th><th>Est. size</th></tr>
+            <tr><td><b>Grand Tunis</b></td><td>10–15</td><td>~90 MB</td></tr>
+            <tr><td><b>Sfax</b></td><td>10–15</td><td>~45 MB</td></tr>
+            <tr><td><b>All Tunisia</b></td><td>5–11</td><td>~80 MB</td></tr>
+          </table>
+          <p class="muted" style="font-size:14px;margin-top:12px">Tile counts are computed with slippy-map math; rows stored in TMS order. Stored in the app's private docs folder — no storage permission needed.</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 12 · OTHER SCREENS -->
+  <section class="slide">
+    <span class="kicker">Features 5 &amp; 6</span>
+    <h2>💳 Cards · 🔔 Messages · 👤 Profile</h2>
+    <div class="slide-body">
+      <div class="grid g3" style="margin-top:14px">
+        <div class="card"><h3>💳 Cartes</h3>
+          <ul>
+            <li>VISA / Mastercard carousel</li>
+            <li>Instant freeze &amp; security controls</li>
+            <li>Daily withdrawal limits</li>
+            <li>Transaction history</li>
+            <li>QR &amp; mobile payment</li>
+          </ul>
+        </div>
+        <div class="card"><h3>🔔 Messages</h3>
+          <ul>
+            <li>Grouped by Today / Yesterday / Week</li>
+            <li>Tabs: All · Bank · Security · Contacts</li>
+            <li>Transaction &amp; fraud alerts</li>
+            <li>System messages</li>
+          </ul>
+        </div>
+        <div class="card"><h3>👤 Profil</h3>
+          <ul>
+            <li>Expandable header with VIP badge</li>
+            <li>Quick account overview</li>
+            <li>Security settings</li>
+            <li>Notification preferences</li>
+            <li>Language options</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 13 · ARCHITECTURE -->
+  <section class="slide">
+    <span class="kicker">Engineering</span>
+    <h2>Clean, layered architecture</h2>
+    <div class="slide-body">
+      <div class="grid g2">
+        <div>
+          <pre>lib/
+├─ <span class="c">config/</span>     secrets (gitignored) + example
+├─ <span class="c">models/</span>     ATM · ChatMessage
+├─ <span class="c">services/</span>   business logic &amp; APIs
+│   ├─ atm_service        <span class="m">// Overpass + fallback</span>
+│   ├─ chat_service       <span class="m">// Groq LLaMA</span>
+│   ├─ location_service   <span class="m">// GPS + distance</span>
+│   ├─ offline_map_service<span class="m">// MBTiles</span>
+│   └─ mbtiles_provider   <span class="m">// SQLite → map</span>
+├─ <span class="c">screens/</span>    home · map · cartes · messages
+│              profil · assistance · atm_detail
+├─ theme.dart   <span class="m">// brand colors</span>
+└─ main.dart    <span class="m">// entry point</span></pre>
+        </div>
+        <div>
+          <h3>Why this structure</h3>
+          <ul class="clean">
+            <li><b>Models</b> = pure data (with an Overpass JSON parser).</li>
+            <li><b>Services</b> = all I/O and logic, fully testable and UI-free.</li>
+            <li><b>Screens</b> = presentation only; they call services.</li>
+            <li>API keys live in a <b>gitignored</b> <code>secrets.dart</code> with a committed template — safe to open-source.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 14 · TECH STACK -->
+  <section class="slide">
+    <span class="kicker">Tech stack</span>
+    <h2>What it's built with — and why</h2>
+    <div class="slide-body">
+      <table>
+        <tr><th>Layer</th><th>Technology</th><th>Why</th></tr>
+        <tr><td><b>Framework</b></td><td>Flutter 3.44 / Dart</td><td>One codebase → Android &amp; iOS</td></tr>
+        <tr><td><b>Maps</b></td><td>flutter_map + OpenStreetMap</td><td>Free, no API key, full control</td></tr>
+        <tr><td><b>AI</b></td><td>Groq API · LLaMA 3.1-8B</td><td>Free tier, fastest inference</td></tr>
+        <tr><td><b>ATM data</b></td><td>Overpass API</td><td>Real OSM data for all Tunisia</td></tr>
+        <tr><td><b>Offline maps</b></td><td>MBTiles (sqflite)</td><td>One resumable file per region</td></tr>
+        <tr><td><b>Location</b></td><td>geolocator</td><td>Permissions + distance math</td></tr>
+        <tr><td><b>Networking</b></td><td>http + Dio</td><td>REST calls + chunked tile download</td></tr>
+        <tr><td><b>Navigation</b></td><td>url_launcher</td><td>Google Maps deep links</td></tr>
+      </table>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 15 · DESIGN SYSTEM -->
+  <section class="slide">
+    <span class="kicker">Design</span>
+    <h2>🎨 A consistent brand identity</h2>
+    <div class="slide-body">
+      <p class="lead">Every screen follows ATB's official palette, applied through a single Material 3 theme so colors and components stay consistent app-wide.</p>
+      <div class="grid g4" style="margin-top:24px">
+        <div class="stat" style="background:#8B1832;color:#fff;border:none"><div style="font-weight:800;font-size:18px">Crimson</div><div style="opacity:.85;font-size:13px;margin-top:6px">#8B1832 · primary</div></div>
+        <div class="stat" style="background:#5C0F21;color:#fff;border:none"><div style="font-weight:800;font-size:18px">Burgundy</div><div style="opacity:.85;font-size:13px;margin-top:6px">#5C0F21 · dark</div></div>
+        <div class="stat" style="background:#B22C4A;color:#fff;border:none"><div style="font-weight:800;font-size:18px">Rose</div><div style="opacity:.85;font-size:13px;margin-top:6px">#B22C4A · light</div></div>
+        <div class="stat" style="background:#2E7D32;color:#fff;border:none"><div style="font-weight:800;font-size:18px">Green</div><div style="opacity:.85;font-size:13px;margin-top:6px">#2E7D32 · success</div></div>
+      </div>
+      <div class="row" style="margin-top:24px">
+        <span class="pill">Material 3</span>
+        <span class="pill">12–16px rounded cards</span>
+        <span class="pill">Soft shadows</span>
+        <span class="pill">IndexedStack tabs</span>
+        <span class="pill">Portrait-locked</span>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 16 · HIGHLIGHTS -->
+  <section class="slide">
+    <span class="kicker">Technical highlights</span>
+    <h2>Engineering decisions I'm proud of</h2>
+    <div class="slide-body">
+      <div class="grid g2" style="margin-top:8px">
+        <div class="card"><h3>🛟 Never breaks</h3><p>Every external call (GPS, Overpass, Groq) has a graceful fallback — curated ATMs, mock AI replies, cached tiles. The app stays usable offline or when an API is down.</p></div>
+        <div class="card"><h3>🔁 Resumable downloads</h3><p>Tile downloads checkpoint at the tile level in SQLite, so a dropped connection costs you nothing — it picks up exactly where it stopped.</p></div>
+        <div class="card"><h3>🧠 Context-aware AI</h3><p>The assistant isn't generic — it's fed the user's actual nearby ATMs and recent conversation, so answers are specific and grounded.</p></div>
+        <div class="card"><h3>🔐 Safe to open-source</h3><p>Secrets are isolated and gitignored with a committed template, so contributors can run it without ever leaking a key.</p></div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 17 · ROADMAP -->
+  <section class="slide">
+    <span class="kicker">Roadmap</span>
+    <h2>Done &amp; what's next</h2>
+    <div class="slide-body">
+      <div class="grid g2">
+        <div class="card"><h3>✅ Shipped</h3>
+          <ul class="clean check">
+            <li>Live ATM map (Overpass API)</li>
+            <li>AI chatbot in Tunisian Derja</li>
+            <li>Card management screen</li>
+            <li>Offline map download (MBTiles)</li>
+            <li>Custom ATB app icon</li>
+          </ul>
+        </div>
+        <div class="card"><h3>🔜 Planned</h3>
+          <ul class="clean todo">
+            <li>Biometric authentication</li>
+            <li>Real ATB backend integration</li>
+            <li>Push notifications</li>
+            <li>Play Store / App Store release</li>
+            <li>Dark mode</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-tag">ATB MOBILE</div>
+  </section>
+
+  <!-- 18 · CLOSE -->
+  <section class="slide title-slide">
+    <div class="logo">ATB</div>
+    <h1>Thank you</h1>
+    <div class="sub">ATB Mobile — fast, intelligent, offline-ready banking, built for Tunisia with Flutter &amp; AI.</div>
+    <div class="badges">
+      <span class="badge">🗺️ Live map</span>
+      <span class="badge">🤖 Derja AI</span>
+      <span class="badge">📱 Offline-first</span>
+      <span class="badge">💳 Card management</span>
+    </div>
+    <div class="by">Hamza Achour · Questions welcome 🙌</div>
+  </section>
+
+</div>
+
+<div class="chrome">
+  <button class="btn" id="prev" aria-label="Previous">‹</button>
+  <div class="counter" id="counter">1 / 18</div>
+  <button class="btn" id="next" aria-label="Next">›</button>
+</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  const counter=document.getElementById('counter');
+  const progress=document.getElementById('progress');
+  function show(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    counter.textContent=(i+1)+' / '+slides.length;
+    progress.style.width=((i+1)/slides.length*100)+'%';
+  }
+  document.getElementById('next').onclick=()=>show(i+1);
+  document.getElementById('prev').onclick=()=>show(i-1);
+  document.addEventListener('keydown',e=>{
+    if(['ArrowRight','ArrowDown',' ','PageDown'].includes(e.key)){e.preventDefault();show(i+1);}
+    else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();show(i-1);}
+    else if(e.key==='Home'){show(0);}
+    else if(e.key==='End'){show(slides.length-1);}
+    else if(e.key.toLowerCase()==='f'){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
+    else if(e.key.toLowerCase()==='p'){window.print();}
+  });
+  // swipe (touch)
+  let x0=null;
+  document.addEventListener('touchstart',e=>x0=e.touches[0].clientX);
+  document.addEventListener('touchend',e=>{
+    if(x0===null)return;
+    const dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50)show(i+(dx<0?1:-1));
+    x0=null;
+  });
+  show(0);
+</script>
+</body>
+</html>

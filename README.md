@@ -22,7 +22,7 @@
 
 <br/>
 
-[✨ Features](#-features) • [🗺️ Live Map](#-live-atm-map) • [🤖 AI Assistant](#-ai-assistant--derja) • [📦 Installation](#-installation) • [🏗️ Architecture](#-architecture) • [🤝 Contributing](#-contributing)
+[💼 Business Context](#-business-context) • [✨ Features](#-features) • [🗺️ Live Map](#-live-atm-map) • [🤖 AI Assistant](#-ai-assistant--derja) • [📦 Installation](#-installation) • [🏗️ Architecture](#-architecture) • [🤝 Contributing](#-contributing)
 
 ---
 
@@ -33,6 +33,23 @@
 ATB Mobile is a **full-featured Flutter banking application** built from scratch for Arab Tunisian Bank customers. It combines real-time ATM geolocation, an AI-powered assistant that speaks **Tunisian dialect (Derja)**, and a sleek card management system — all wrapped in ATB's iconic burgundy brand identity.
 
 This isn't a prototype. This isn't a demo. This is a **production-ready** mobile banking experience with offline support, live data from OpenStreetMap, and AI responses under 500ms.
+
+---
+
+## 💼 Business Context
+
+**The problem.** Finding a working ATM in Tunisia that offers the *right* service — cash deposit, cardless withdrawal, 24/7 access — is a daily friction point. Bank websites list branches, not live ATM capabilities. The result: customers call the support line for questions a map could answer, and call centers absorb the cost.
+
+**The solution.** ATB Mobile turns that support burden into self-service:
+
+| Business pain | How the app answers it |
+|---------------|------------------------|
+| 📞 Call center flooded with "where is the nearest ATM?" | Live geolocated map with service filters (open now, deposit, cardless) |
+| 🌐 Customers who write in Derja, French or English | AI assistant that mirrors the user's language — including Tunisian dialect |
+| 📶 Unreliable mobile coverage outside big cities | Offline map regions (MBTiles) that work with zero connectivity |
+| 💸 Licensing costs of Google Maps / proprietary AI | OpenStreetMap + Groq free tier — **zero recurring API cost** |
+
+**Measurable value:** every ATM lookup handled in-app is a call that never reaches the 71 110 500 hotline, and every Derja conversation handled by the assistant widens the bank's reach to customers who would never use a French-only tool.
 
 ---
 
@@ -210,6 +227,12 @@ flutter run
 flutter build apk --release
 ```
 
+### 5. Run the tests
+```bash
+flutter test
+```
+Unit tests cover the Overpass API parser (`ATM.fromOverpass`), distance formatting, and the offline-map tile mathematics.
+
 ---
 
 ## 🏗️ Architecture
@@ -217,23 +240,23 @@ flutter build apk --release
 ```
 atb_banking_app/
 │
-├── lib/
+├── lib/                          # Application source code
 │   ├── config/
 │   │   ├── secrets.dart          # 🔐 gitignored — your API keys
 │   │   └── secrets.example.dart  # template for contributors
 │   │
-│   ├── models/
+│   ├── models/                   # Domain entities (pure Dart, no UI)
 │   │   ├── atm.dart              # ATM model + Overpass API parser
 │   │   └── chat_message.dart     # Chat message with optional ATM card
 │   │
-│   ├── services/
+│   ├── services/                 # Business logic & external integrations
 │   │   ├── atm_service.dart      # Overpass API + 20 fallback ATMs
 │   │   ├── chat_service.dart     # Groq LLaMA integration
 │   │   ├── location_service.dart # GPS + permission handling
 │   │   ├── offline_map_service.dart  # MBTiles download & management
 │   │   └── mbtiles_tile_provider.dart # SQLite → flutter_map bridge
 │   │
-│   ├── screens/
+│   ├── screens/                  # UI, one folder per feature
 │   │   ├── home/                 # Balance card + quick actions
 │   │   ├── map/                  # Live ATM map + offline download
 │   │   ├── cartes/               # Card carousel + services
@@ -245,10 +268,25 @@ atb_banking_app/
 │   ├── theme.dart                # ATB brand colors & typography
 │   └── main.dart                 # App entry point
 │
+├── test/                         # Unit tests (models & services)
+│   ├── models/atm_test.dart
+│   └── services/offline_region_test.dart
+│
+├── docs/                         # Project documentation & pitch material
+│   └── presentation/             # Slide decks (HTML, PPTX) + assets
+│
+├── scripts/                      # Developer tooling
+│   ├── make_pptx.py              # Presentation generator
+│   └── update.bat                # One-click commit & push helper
+│
+├── assets/                       # App icon & static resources
+│
 └── android/
     └── app/src/main/
         └── AndroidManifest.xml   # INTERNET + LOCATION permissions
 ```
+
+**Layering rule:** `screens → services → models`. UI never talks to an API directly, and models stay pure Dart — which is what makes them unit-testable.
 
 ---
 

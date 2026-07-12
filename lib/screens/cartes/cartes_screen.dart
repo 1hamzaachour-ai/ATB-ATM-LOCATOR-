@@ -136,7 +136,7 @@ class _BankCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: ATBTheme.primary.withOpacity(0.35),
+                color: ATBTheme.primary.withValues(alpha: 0.35),
                 blurRadius: 12,
                 offset: const Offset(0, 6)),
           ],
