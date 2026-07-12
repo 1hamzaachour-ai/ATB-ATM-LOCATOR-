@@ -9,6 +9,7 @@
 
 <br/>
 
+[![CI](https://img.shields.io/github/actions/workflow/status/1hamzaachour-ai/ATB-ATM-LOCATOR-/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/1hamzaachour-ai/ATB-ATM-LOCATOR-/actions/workflows/ci.yml)
 [![Flutter](https://img.shields.io/badge/Flutter-3.44.1-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.12.1-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
 [![License](https://img.shields.io/badge/License-MIT-8B1832?style=for-the-badge)](LICENSE)
